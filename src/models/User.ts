@@ -50,6 +50,10 @@ export async function unfollow(from: string, to: string) {
   );
 }
 
+export function compareUserPassword(user: User, password: string) {
+  return user.password === password;
+}
+
 /**
  * Helper method for getting user's gravatar.
  */

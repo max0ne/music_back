@@ -4,20 +4,20 @@ import * as passportFacebook from 'passport-facebook';
 import * as passportLocal from 'passport-local';
 import * as request from 'request';
 
-// import { User, UserType } from '../models/User';
 import { NextFunction, Request, Response } from 'express';
-import * as User from '../models/User';
+import { Album, Playlist, Track, User } from '../models/Models';
+import * as UserDB from '../models/User';
 
 const LocalStrategy = passportLocal.Strategy;
 const FacebookStrategy = passportFacebook.Strategy;
 
 passport.serializeUser<any, any>((user, done) => {
-  done(undefined, user.id);
+  done(undefined, user.uname);
 });
 
 passport.deserializeUser(async (uname, done) => {
   try {
-    const user = await User.findByUname(uname  as string);
+    const user = await UserDB.findByUname(uname as string);
     done(undefined, user);
   } catch (e) {
     done(e, undefined);
@@ -27,21 +27,22 @@ passport.deserializeUser(async (uname, done) => {
 /**
  * Sign in using Email and Password.
  */
-passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
-  return done(undefined, undefined);
-  // User.findOne({ email: email.toLowerCase() }, (err: any, user: any) => {
-  //   if (err) { return done(err); }
-  //   if (!user) {
-  //     return done(undefined, false, { message: `Email ${email} not found.` });
-  //   }
-  //   user.comparePassword(password, (err: Error, isMatch: boolean) => {
-  //     if (err) { return done(err); }
-  //     if (isMatch) {
-  //       return done(undefined, user);
-  //     }
-  //     return done(undefined, false, { message: 'Invalid email or password.' });
-  //   });
-  // });
+passport.use(new LocalStrategy({ usernameField: 'uname' }, async (uname, password, done) => {
+
+  const user = await UserDB.findByUname(uname);
+  if (_.isNil(uname) || !_.isString(uname) || uname.length === 0) {
+    return done(undefined, false, { message: `uname required.` });
+  }
+
+  if (_.isNil(user)) {
+    return done(undefined, false, { message: `User with uname ${uname} not found.` });
+  }
+
+  if (!UserDB.compareUserPassword(user, password)) {
+    return done(undefined, false, { message: 'Invalid email or password.' });
+  } else {
+    return done(undefined, user);
+  }
 }));
 
 /**
