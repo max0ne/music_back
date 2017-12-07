@@ -1,88 +1,62 @@
 import * as bcrypt from 'bcrypt-nodejs';
 import * as crypto from 'crypto';
-import * as mongoose from 'mongoose';
+import * as db from './db';
+import { Album, Playlist, Track, User } from './Models';
 
-export type UserModel = mongoose.Document & {
-  email: string,
-  password: string,
-  passwordResetToken: string,
-  passwordResetExpires: Date,
-
-  facebook: string,
-  tokens: AuthToken[],
-
-  profile: {
-    name: string,
-    gender: string,
-    location: string,
-    website: string,
-    picture: string,
-  },
-
-  comparePassword: (candidatePassword: string, cb: (err: any, isMatch: any) => {}) => void,
-  gravatar: (size: number) => string,
-};
-
-export interface AuthToken {
-  accessToken: string;
-  kind: string;
+export async function findByUname(uname: string) {
+  const user = (await db.sql('SELECT * FROM t_user WHERE uname = ?', uname))[0] as User;
+  return user;
 }
 
-const userSchema = new mongoose.Schema({
-  email: { type: String, unique: true },
-  password: String,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
+export async function register(user: User) {
+  const { uname, first_name, last_name, email, city, password } = user;
+  await db.sql(
+    'INSERT INTO t_user (uname, first_name, last_name, email, city, password) VALUES (?, ?, ?, ?, ?, ?)',
+    uname, first_name, last_name, email, city, password);
+}
 
-  facebook: String,
-  twitter: String,
-  google: String,
-  tokens: Array,
+export async function update(user: User) {
+  const { uname, first_name, last_name, email, city, password } = user;
+  await db.sql(
+    'UPDATE t_user SET (first_name, last_name, email, city) VALUES (?, ?, ?, ?) WHERE uname = ?',
+    first_name, last_name, email, city, uname);
+}
 
-  profile: {
-    name: String,
-    gender: String,
-    location: String,
-    website: String,
-    picture: String,
-  },
-}, { timestamps: true });
+export async function getFollowing(uname: string) {
+  await db.sql(
+    'SELECT uname, first_name, last_name, email, city FROM t_user INNER JOIN t_follow WHERE follower_uname = ?',
+    uname,
+  );
+}
 
-/**
- * Password hash middleware.
- */
-userSchema.pre('save', function save(next) {
-  if (!this.isModified('password')) { return next(); }
-  bcrypt.genSalt(10, (err, salt) => {
-    if (err) { return next(err); }
-    bcrypt.hash(this.password, salt, undefined, (err: mongoose.Error, hash) => {
-      if (err) { return next(err); }
-      this.password = hash;
-      next();
-    });
-  });
-});
+export async function getFollowedBy(uname: string) {
+  await db.sql(
+    'SELECT uname, first_name, last_name, email, city FROM t_user INNER JOIN t_follow WHERE followee_uname = ?',
+    uname,
+  );
+}
 
-userSchema.methods.comparePassword = function(candidatePassword: string, cb: (err: any, isMatch: any) => {}) {
-  bcrypt.compare(candidatePassword, this.password, (err: mongoose.Error, isMatch: boolean) => {
-    cb(err, isMatch);
-  });
-};
+export async function follow(from: string, to: string) {
+  await db.sql(
+    'INSERT INTO t_follow (follower_uname, followee_uname, followed_at) VALUES (?, ?, NOW())',
+    from, to,
+  );
+}
+
+export async function unfollow(from: string, to: string) {
+  await db.sql(
+    'DELETE FROM t_follow WHERE follower_uname = ? AND followee_uname = ?',
+    from, to,
+  );
+}
 
 /**
  * Helper method for getting user's gravatar.
  */
-userSchema.methods.gravatar = function(size: number) {
+function gravatar(uname: string, size: number) {
   if (!size) {
     size = 200;
   }
-  if (!this.email) {
-    return `https://gravatar.com/avatar/?s=${size}&d=retro`;
-  }
-  const md5 = crypto.createHash('md5').update(this.email).digest('hex');
+  const md5 = crypto.createHash('md5').update(uname).digest('hex');
   return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
-};
-
-// export const User: UserType = mongoose.model<UserType>('User', userSchema);
-const User = mongoose.model('User', userSchema);
-export default User;
+}
