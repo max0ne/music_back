@@ -2,7 +2,7 @@ import { } from 'jest';
 import * as supertest from 'supertest';
 import * as _ from 'lodash';
 
-const request = supertest('http://localhost:3000/api');
+const request = supertest('https://c007f22c.ngrok.io/api');
 
 const randomUserName = `test_user_${new Date().toISOString()}`;
 const user = {

@@ -24,7 +24,7 @@ dotenv.config();
 
 import * as albumRouter from './controllers/album';
 import * as playlistRouter from './controllers/playlist';
-import * as userRouter from './controllers/userr';
+import * as userRouter from './controllers/user';
 
 /**
  * API keys and Passport configuration.
