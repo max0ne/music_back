@@ -6,13 +6,13 @@ import * as compression from 'compression';  // compresses requests
 import * as dotenv from 'dotenv';
 import * as errorHandler from 'errorhandler';
 import * as express from 'express';
-import * as flash from 'express-flash';
+import * as jwt from 'express-jwt';
 import * as session from 'express-session';
 import expressValidator = require('express-validator');
 import * as lusca from 'lusca';
-import * as logger from 'morgan';
 import * as passport from 'passport';
 import * as path from 'path';
+import * as morgan from 'morgan';
 
 import * as config from './config/config';
 import * as util from './util';
@@ -22,11 +22,9 @@ import * as util from './util';
  */
 dotenv.config();
 
-/**
- * Controllers (route handlers).
- */
-import * as homeController from './controllers/home';
-import * as userController from './controllers/user';
+import * as albumRouter from './controllers/album';
+import * as playlistRouter from './controllers/playlist';
+import * as userRouter from './controllers/userr';
 
 /**
  * API keys and Passport configuration.
@@ -44,10 +42,11 @@ const app = express();
 app.set('port', util.getEnv('PORT') || 3000);
 app.set('view engine', 'pug');
 app.use(compression());
-app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use(expressValidator());
+app.use(morgan('dev'));
 
 // app.use(session({
 //   resave: true,
@@ -61,36 +60,22 @@ app.use(expressValidator());
 // app.use(passport.initialize());
 // app.use(passport.session());
 
-app.use(flash());
 app.use(lusca.xframe('SAMEORIGIN'));
 app.use(lusca.xssProtection(true));
 app.use((req, res, next) => {
   res.locals.user = req.user;
   next();
 });
-// app.use((req, res, next) => {
-//   // After successful login, redirect back to the intended page
-//   if (!req.user &&
-//       req.path !== '/login' &&
-//       req.path !== '/signup' &&
-//       !req.path.match(/^\/auth/) &&
-//       !req.path.match(/\./)) {
-//     req.session.returnTo = req.path;
-//   } else if (req.user &&
-//       req.path === '/account') {
-//     req.session.returnTo = req.path;
-//   }
-//   next();
-// });
 
-/**
- * Primary app routes.
- */
-app.get('/', homeController.index);
-app.post('/login', userController.postLogin);
-app.post('/signup', userController.postSignup);
-app.post('/account/profile', passportConfig.isAuthenticated, userController.postUpdateProfile);
-app.post('/account/password', passportConfig.isAuthenticated, userController.postUpdatePassword);
+const apiRouter = express.Router();
+
+apiRouter.use(jwt({ secret: util.getEnv('JWT_SECRET', true) }).unless({ path: ['/api/user/login', '/api/user/register'] }));
+
+apiRouter.use('/album', albumRouter.router);
+apiRouter.use('/playlist', playlistRouter.router);
+apiRouter.use('/user', userRouter.router);
+
+app.use('/api', apiRouter);
 
 /**
  * Error Handler. Provides full stack - remove for production

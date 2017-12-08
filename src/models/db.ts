@@ -33,7 +33,7 @@ export function sql(query: string, ...params: any[]) {
       };
 
       if (params && params.length > 0) {
-        conn.query(query, ...params, cb);
+        conn.query(query, params, cb);
       } else {
         conn.query(query, cb);
       }

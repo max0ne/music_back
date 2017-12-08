@@ -17,8 +17,9 @@ export async function register(user: User) {
 
 export async function update(user: User) {
   const { uname, first_name, last_name, email, city, password } = user;
+  console.log(uname);
   await db.sql(
-    'UPDATE t_user SET (first_name, last_name, email, city) VALUES (?, ?, ?, ?) WHERE uname = ?',
+    'UPDATE t_user SET first_name = ?, last_name = ?, email = ?, city = ? WHERE uname = ?;',
     first_name, last_name, email, city, uname);
 }
 
@@ -47,6 +48,13 @@ export async function unfollow(from: string, to: string) {
   await db.sql(
     'DELETE FROM t_follow WHERE follower_uname = ? AND followee_uname = ?',
     from, to,
+  );
+}
+
+export async function del(uname: string) {
+  await db.sql(
+    'DELETE FROM t_user WHERE uname = ?;',
+    uname,
   );
 }
 
