@@ -1,16 +1,12 @@
 import { } from 'jest';
 import * as supertest from 'supertest';
 import * as _ from 'lodash';
+import * as testUtil from './testUtil';
 
 const request = supertest('http://localhost:3000/api');
 
 const randomUserName = `test_user_${new Date().toISOString()}`;
-const user = {
-  uname: randomUserName,
-  password: 'hahahhahah',
-  first_name: 'fooo',
-  email: 'hah@hah.com',
-};
+const user = testUtil.makeUser(randomUserName);
 const changedUserName = 'hahha';
 
 let token: string | undefined;
@@ -48,7 +44,7 @@ describe('POST /user/login', () => {
 describe('GET /user/:uname', () => {
   it('should return 200', () =>
     request
-      .get(`/user/${randomUserName}`)
+      .get(`/user/@${randomUserName}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(200),
   );
@@ -73,7 +69,7 @@ describe('PUT /user/update', () => {
 describe('GET /user/:uname', () => {
   it('should return 200', () =>
     request
-      .get(`/user/${randomUserName}`)
+      .get(`/user/@${randomUserName}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .then((res) => {
@@ -94,36 +90,8 @@ describe('POST /user', () => {
 describe('GET /user/:uname', () => {
   it('should return 404 after delete', () =>
     request
-      .get(`/user/${randomUserName}`)
+      .get(`/user/@${randomUserName}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(404),
   );
 });
-
-// describe('GET /album/whatever', () => {
-//   it('should return 404', () =>
-//     request
-//       .get('/album/whatever')
-//       .expect(404),
-//   );
-// });
-
-// describe('GET /playlist/whatever', () => {
-//   it('should return 404', () =>
-//     request
-//       .get('/playlist/whatever')
-//       .expect(404),
-//   );
-// });
-
-// describe('POST /playlist', () => {
-//   it('should return 200', () =>
-//     request
-//       .post('/playlist')
-//       .send({
-//         pltitle: 'pltitle',
-//         tracks: [1, 2, 3],
-//       })
-//       .expect(200),
-//   );
-// });

@@ -1,6 +1,6 @@
 create table t_album
 (
-    alid varchar(100)
+    alid varchar(100) not null
         primary key,
     altitle varchar(100) null,
     aldate datetime null
@@ -25,7 +25,7 @@ create index t_album_track_t_track_trid_fk
 
 create table t_artist
 (
-    arid varchar(100)
+    arid varchar(100) not null
         primary key,
     arname varchar(100) null,
     ardesc varchar(1000) null
@@ -131,7 +131,7 @@ create index t_rating_t_track_trid_fk
 
 create table t_track
 (
-    trid varchar(100)
+    trid varchar(100) not null
         primary key,
     trtitle varchar(1000) null,
     trduration int not null,

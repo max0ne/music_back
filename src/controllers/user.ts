@@ -18,7 +18,7 @@ export const router = express.Router();
 router.post('/login', login);
 router.post('/register', register);
 router.delete('/', del);
-router.get('/:uname', get);
+router.get('/@:uname', get);
 router.put('/update', update);
 router.post('/follow', postFollow);
 router.post('/unfollow', postUnfollow);
@@ -124,7 +124,7 @@ async function postFollow(req: Request, res: Response, next: NextFunction) {
     return util.sendErr(res, `user ${to} not found`);
   }
   await UserDB.follow(from, to);
-  return util.sendOK(util);
+  return util.sendOK(res);
 }
 
 async function postUnfollow(req: Request, res: Response, next: NextFunction) {
@@ -134,7 +134,7 @@ async function postUnfollow(req: Request, res: Response, next: NextFunction) {
     return util.sendErr(res, 'uname required');
   }
   await UserDB.unfollow(from, to);
-  return util.sendOK(util);
+  return util.sendOK(res);
 }
 
 async function following(req: Request, res: Response, next: NextFunction) {

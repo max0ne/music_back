@@ -1,11 +1,23 @@
 import * as bcrypt from 'bcrypt-nodejs';
 import * as crypto from 'crypto';
 import * as db from './db';
+import * as _ from 'lodash';
 import { Album, Playlist, Track, User } from './Models';
 
 export async function findByUname(uname: string) {
   const user = (await db.sql('SELECT * FROM t_user WHERE uname = ?', uname))[0] as User;
   return user;
+}
+
+function removePassword(userOrUsers: User | User[]) {
+  if (_.isArray(userOrUsers)) {
+    (userOrUsers as User[]).forEach((user) => {
+      delete user.password;
+    });
+  } else {
+    delete userOrUsers.password;
+  }
+  return userOrUsers;
 }
 
 export async function register(user: User) {
@@ -25,18 +37,18 @@ export async function update(user: User) {
 
 export async function getFollowing(uname: string) {
   const users = await db.sql(
-    'SELECT uname, first_name, last_name, email, city FROM t_user INNER JOIN t_follow WHERE follower_uname = ?',
+    'SELECT uname, first_name, last_name, email, city FROM t_user INNER JOIN t_follow ON (uname = follower_uname) WHERE follower_uname = ?',
     uname,
   ) as User[];
-  return users;
+  return removePassword(users);
 }
 
 export async function getFollowedBy(uname: string) {
   const users = await db.sql(
-    'SELECT uname, first_name, last_name, email, city FROM t_user INNER JOIN t_follow WHERE followee_uname = ?',
+    'SELECT uname, first_name, last_name, email, city FROM t_user INNER JOIN t_follow ON (uname = followee_uname) WHERE followee_uname = ?',
     uname,
   ) as User[];
-  return users;
+  return removePassword(users);
 }
 
 export async function follow(from: string, to: string) {
