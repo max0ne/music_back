@@ -75,4 +75,26 @@ describe('follow stuff', () => {
         expect(followed[0].uname === uname1);
       }),
   );
+
+  it('can follow other with return 200', async () =>
+    request
+      .post('/user/unfollow')
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok1}`)
+      .send({ uname: uname2 })
+      .expect(200),
+  );
+
+  it('have 0 follower after unfollowed', async () =>
+    request
+      .get('/user/followedBy')
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok2}`)
+      .expect(200)
+      .then((res) => {
+        const followed = res.body;
+        expect(_.isArray(followed)).toBeTruthy();
+        expect(followed.length).toBe(0);
+      }),
+  );
 });
