@@ -21,6 +21,12 @@
             ],
             "preLaunchTask": "npm: build",
             "protocol": "inspector"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "program": "${file}"
         }
     ]
 }

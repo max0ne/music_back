@@ -28,6 +28,9 @@ export function sql(query: string, ...params: any[]) {
       }
 
       const cb = (err: any, result: any) => {
+        Object.keys(query);
+        Object.keys(params);
+
         err ? reject(err) : resolve(result);
         conn && conn.release();
       };
