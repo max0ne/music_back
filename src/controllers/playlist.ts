@@ -17,7 +17,7 @@ router.get('/mine', getMine);
 router.get('/@:uname', getBy);
 router.post('/', create);
 router.put('/:plid/changeName', changeName);
-router.put('/addTrack', addTrack);
+router.put('/:plid/addTrack', addTrack);
 router.put('/:plid/delTrack', delTrack);
 router.delete('/:plid', del);
 
@@ -58,11 +58,12 @@ async function changeName(req: Request, res: Response, next: NextFunction) {
     return util.sendUnauthorized(res);
   }
   await PlaylistDB.changeName(plid, pltitle);
-  return util.sendOK;
+  return util.sendOK(res);
 }
 
 async function addTrack(req: Request, res: Response, next: NextFunction) {
-  const { plid, trid } = req.body;
+  const { plid } = req.params;
+  const { trid } = req.body;
 
   if (!_.isString(plid) || !_.isString(trid)) {
     return util.sendErr(res, 'plid & trid required');
@@ -77,8 +78,8 @@ async function addTrack(req: Request, res: Response, next: NextFunction) {
 }
 
 async function delTrack(req: Request, res: Response, next: NextFunction) {
-  const plid = req.params.plid;
-  const trid = req.body.plid;
+  const { plid } = req.params;
+  const { trid } = req.body;
 
   if (!_.isString(plid) || !_.isString(trid)) {
     return util.sendErr(res, 'plid & trid required');
@@ -118,9 +119,9 @@ async function getBy(req: Request, res: Response, next: NextFunction) {
 }
 
 async function del(req: Request, res: Response, next: NextFunction) {
-  const plid = req.params.plid;
+  const { plid } = req.params;
 
-  if (!_.isString(plid)) {
+  if (!util.isValidParam(plid)) {
     return util.sendErr(res, 'plid required');
   }
 

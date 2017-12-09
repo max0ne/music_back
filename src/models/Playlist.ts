@@ -108,7 +108,7 @@ export async function delTrack(plid: string, trid: string) {
 
 export async function del(plid: string) {
   const sql = `
-  DELETE FROM t_playlist WHERE plid = 1;
+  DELETE FROM t_playlist WHERE plid = ?;
   `;
   await db.sql(sql, plid);
 }

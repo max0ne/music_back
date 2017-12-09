@@ -35,6 +35,8 @@ export function sql(query: string, ...params: any[]) {
         conn && conn.release();
       };
 
+      console.debug(query, params);
+
       if (params && params.length > 0) {
         conn.query(query, params, cb);
       } else {

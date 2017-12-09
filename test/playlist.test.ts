@@ -53,7 +53,6 @@ describe('playlist', () => {
       })
       .expect(200)
       .then((res) => {
-        console.log(res.body);
         const pl = res.body;
         expect(isValidPlaylist(pl)).toBeTruthy();
         plid = pl.plid;
@@ -82,11 +81,10 @@ describe('playlist', () => {
       .expect(200),
   );
 
-  return;
-
   it('did change name', () =>
     request
-      .get(`/playlist/${plid}`)
+      .get(`/playlist`)
+      .query({ plid })
       .set('Accept', 'application/json')
       .set('Authorization', `Bearer ${tok1}`)
       .expect(200)
@@ -94,5 +92,96 @@ describe('playlist', () => {
       .then((pl) => {
         expect(pl.pltitle).toBe('new title');
       }),
+  );
+
+  it('can get mine', () =>
+    request
+      .get('/playlist/mine')
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok1}`)
+      .expect(200)
+      .then((res) => {
+        expect(_.isArray(res.body)).toBeTruthy();
+        expect(res.body.length).toBe(1);
+        expect(isValidPlaylist(res.body[0]));
+        expect(res.body[0].plid).toBe(plid);
+      }),
+    );
+
+  it('can get others', () =>
+    request
+      .get(`/playlist/@${uname1}`)
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok2}`)
+      .expect(200)
+      .then((res) => {
+        expect(_.isArray(res.body)).toBeTruthy();
+        expect(res.body.length).toBe(1);
+        expect(isValidPlaylist(res.body[0]));
+        expect(res.body[0].plid).toBe(plid);
+      }),
+  );
+
+  it('can addTrack', () =>
+    request
+      .put(`/playlist/${plid}/addTrack`)
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok1}`)
+      .send({ trid: '001LKjMxQcD7impp1Fxfsj' })
+      .expect(200),
+  );
+
+  it('did addTrack', () =>
+    request
+      .get(`/playlist`)
+      .query({ plid })
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok1}`)
+      .expect(200)
+      .then((res) => res.body)
+      .then((pl) => {
+        expect(pl.tracks.length).toBe(3);
+        expect(_.map(pl.tracks, 'trid').indexOf('001LKjMxQcD7impp1Fxfsj')).not.toBe(-1);
+      }),
+  );
+
+  it('can delTrack', () =>
+    request
+      .put(`/playlist/${plid}/delTrack`)
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok1}`)
+      .send({ trid: '001LKjMxQcD7impp1Fxfsj' })
+      .expect(200),
+  );
+
+  it('did delTrack', () =>
+    request
+      .get(`/playlist`)
+      .query({ plid })
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok1}`)
+      .expect(200)
+      .then((res) => res.body)
+      .then((pl) => {
+        expect(pl.tracks.length).toBe(2);
+        expect(_.map(pl.tracks, 'trid').indexOf('001LKjMxQcD7impp1Fxfsj')).toBe(-1);
+      }),
+  );
+
+  it('can delete playlist', () =>
+    request
+      .delete(`/playlist/${plid}`)
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok1}`)
+      .expect(200),
+  );
+
+  it('did delete playlist', () =>
+    request
+      .get(`/playlist`)
+      .query({ plid })
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok1}`)
+      .expect(404),
   );
 });
