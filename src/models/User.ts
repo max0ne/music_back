@@ -24,17 +24,19 @@ export async function update(user: User) {
 }
 
 export async function getFollowing(uname: string) {
-  await db.sql(
+  const users = await db.sql(
     'SELECT uname, first_name, last_name, email, city FROM t_user INNER JOIN t_follow WHERE follower_uname = ?',
     uname,
-  );
+  ) as User[];
+  return users;
 }
 
 export async function getFollowedBy(uname: string) {
-  await db.sql(
+  const users = await db.sql(
     'SELECT uname, first_name, last_name, email, city FROM t_user INNER JOIN t_follow WHERE followee_uname = ?',
     uname,
-  );
+  ) as User[];
+  return users;
 }
 
 export async function follow(from: string, to: string) {

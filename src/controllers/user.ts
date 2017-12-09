@@ -20,6 +20,10 @@ router.post('/register', register);
 router.delete('/', del);
 router.get('/:uname', get);
 router.put('/update', update);
+router.post('/follow', postFollow);
+router.post('/unfollow', postUnfollow);
+router.get('/following', following);
+router.get('/followedBy', followedBy);
 
 function _genToken(uname: string) {
   return jwt.sign({
@@ -107,4 +111,38 @@ async function update(req: Request, res: Response, next: NextFunction) {
   const updated = _.merge(user, req.body);
   await UserDB.update(updated);
   res.status(200).json(updated);
+}
+
+async function postFollow(req: Request, res: Response, next: NextFunction) {
+  const from = req.user.uname;
+  const to = req.body.uname;
+  if (!_.isString(to)) {
+    return util.sendErr(res, 'uname required');
+  }
+  const toUser = UserDB.findByUname(to);
+  if (_.isNil(to)) {
+    return util.sendErr(res, `user ${to} not found`);
+  }
+  await UserDB.follow(from, to);
+  return util.sendOK(util);
+}
+
+async function postUnfollow(req: Request, res: Response, next: NextFunction) {
+  const from = req.user.uname;
+  const to = req.body.uname;
+  if (!_.isString(to)) {
+    return util.sendErr(res, 'uname required');
+  }
+  await UserDB.unfollow(from, to);
+  return util.sendOK(util);
+}
+
+async function following(req: Request, res: Response, next: NextFunction) {
+  const users = await UserDB.getFollowing(req.user.uname);
+  return res.status(200).json(users);
+}
+
+async function followedBy(req: Request, res: Response, next: NextFunction) {
+  const users = await UserDB.getFollowedBy(req.user.uname);
+  return res.status(200).json(users);
 }
