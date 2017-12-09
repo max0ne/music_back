@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcrypt-nodejs';
+import * as _ from 'lodash';
 import * as config from '../config/config';
 import * as db from './db';
 import { Album, Playlist, Track, User } from './Models';
@@ -9,10 +10,56 @@ export async function findByTrid(trid: string) {
 }
 
 export async function rateTrack(uname: string, trid: string, rate: number) {
-  await db.sql(
-    'INSERT INTO t_rating (uname, trid, rating, rated_at) VALUES (?, ?, ?, NOW());',
-    uname, trid, rate,
+  const rated = await db.sql(
+    `SELECT * FROM t_rating WHERE trid = ? and uname = ?;`,
+    trid, uname,
   );
+  if (rated.length > 0) {
+    await db.sql(
+      `UPDATE t_rating SET rating = ?, SET rated_at = NOW() WHERE uname = ? AND trid = ?;`,
+      rate, uname, trid,
+    );
+  } else {
+    await db.sql(
+      'INSERT INTO t_rating (uname, trid, rating, rated_at) VALUES (?, ?, ?, NOW());',
+      uname, trid, rate,
+    );
+  }
+}
+
+export async function unrateTrack(uname: string, trid: string) {
+  await db.sql(
+    'DELETE FROM t_rating WHERE uname = ? AND trid = ?;',
+    uname, trid,
+  );
+}
+
+/**
+ * get ratings for tracks, return { trid1: 1, trid2: 2 } if `trid` is array, return rating as number if `trid` is string
+ * @param trid one trid or list of trids
+ * @param uname
+ */
+export async function getRatingsForTracks(trid: string | string[], uname: string) {
+  if (_.isString(trid)) {
+    const results = await db.sql(
+      `SELECT rating FROM t_rating WHERE trid = ? AND uname = ?;`,
+      trid, uname,
+    );
+    return _.map(results, 'rating')[0];
+  } else {
+    const results = await db.sql(
+      `SELECT rating, trid FROM t_rating WHERE trid IN (${trid.map(() => '?').join(',')}) AND uname = ?;`,
+      ...trid, uname,
+    );
+    const map = {} as { [key: string]: number };
+    trid.forEach((trid) => {
+        map[trid] = undefined;
+    });
+    results.forEach((rate) => {
+      map[rate.trid] = rate.raating;
+    });
+    return map;
+  }
 }
 
 export async function search(keyword: string, offset: number, limit: number) {

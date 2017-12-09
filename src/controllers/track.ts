@@ -1,1 +1,43 @@
+import * as async from 'async';
+import * as crypto from 'crypto';
+import { NextFunction, Request, Response } from 'express';
 import * as express from 'express';
+import * as _ from 'lodash';
+const { check } = require('express-validator/check');
+
+import { Album, Playlist, Track, User } from '../models/Models';
+import * as TrackDB from '../models/Track';
+import * as util from '../util';
+
+export const router = express.Router();
+
+router.post('/:trid/rate', rate);
+router.post('/:trid/unrate', unrate);
+
+async function rate(req: Request, res: Response, next: NextFunction) {
+  const { rating } = req.body;
+  const { trid } = req.params;
+
+  if (!util.isValidParam(trid, rating)) {
+    return util.sendErr(res, 'trid, rating required');
+  }
+  const parsedRating = parseInt(rating, 10);
+  if (parsedRating < 1 || parsedRating > 5 || !_.isInteger(parsedRating) || _.isNaN(parsedRating)) {
+    return util.sendErr(res, 'rating must be an integer between 1 to 5');
+  }
+
+  const track = await TrackDB.findByTrid(trid);
+  if (_.isNil(track)) {
+    return util.send404(res, 'track');
+  }
+
+  await TrackDB.rateTrack(req.user.uname, trid, parsedRating);
+  return util.sendOK(res);
+}
+
+async function unrate(req: Request, res: Response, next: NextFunction) {
+  const { trid } = req.params;
+
+  await TrackDB.unrateTrack(req.user.uname, trid);
+  return util.sendOK(res);
+}

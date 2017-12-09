@@ -1,17 +1,18 @@
 
 export interface Track {
-  trid: String;
-  trtitle: String;
+  trid: string;
+  trtitle: string;
   trduration: number;
-  genre: String;
-  arid: String;
+  genre: string;
+  arid: string;
+  rating: number;
 }
 
 export interface Album {
   alid: string;
-  altitle: String;
+  altitle: string;
   aldate: Date;
-  tracks: [Track];
+  tracks: Track[];
 }
 
 export interface Artist {

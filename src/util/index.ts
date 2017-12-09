@@ -12,7 +12,7 @@ export function sendErr(res: any, err: string) {
   res.status(400).send({ err });
 }
 
-export function send404(res: any, whatNotFound: string) {
+export function send404(res: any, whatNotFound?: string) {
   res.status(400).send({ err: `${whatNotFound || 'resource'} not found` });
 }
 
@@ -24,6 +24,6 @@ export function sendOK(res: any, msg?: string) {
   res.status(200).send({ msg: msg || 'ok' });
 }
 
-export function isValidParam(param: any) {
-  return _.isString(param) || _.isNumber(param);
+export function isValidParam(...params: any[]) {
+  return params.every((param) => _.isString(param) || _.isNumber(param));
 }

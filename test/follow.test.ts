@@ -35,8 +35,6 @@ describe('follow stuff', async () => {
     done();
   });
 
-  console.log(tok1, tok2);
-
   it('have zero follows after reg', async () =>
     request
       .get('/user/followedBy')
