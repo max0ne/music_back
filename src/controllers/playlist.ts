@@ -12,13 +12,24 @@ import * as util from '../util';
 
 export const router = express.Router();
 
-router.get('/byid/:id', get);
+router.get('/', get);
+router.get('/mine', getMine);
+router.get('/@:uname', getBy);
 router.post('/', create);
+router.put('/:plid/changeName', changeName);
+router.put('/addTrack', addTrack);
+router.put('/:plid/delTrack', delTrack);
+router.delete('/:plid', del);
+
+const validateTracks = (tracks: any[]) =>
+  _.isArray(tracks) &&
+  (tracks as string[]).every((id) =>
+    _.isString(id) || _.isNumber(id));
 
 async function create(req: Request, res: Response, next: NextFunction) {
   const { pltitle,  tracks } = req.body;
 
-  if (!_.isString(pltitle) || !_.isArray(tracks) || !(tracks as string[]).every((id) => _.isString(id) || _.isNumber(id))) {
+  if (!_.isString(pltitle) || !validateTracks(tracks)) {
     return util.sendErr(res, '');
   }
 
@@ -29,6 +40,57 @@ async function create(req: Request, res: Response, next: NextFunction) {
   await PlaylistDB.create(req.user.uname, playlist);
 }
 
+async function changeName(req: Request, res: Response, next: NextFunction) {
+  const { plid } = req.params;
+  const { pltitle } = req.body;
+
+  if (!_.isString(plid) || !_.isString(pltitle)) {
+    return util.sendErr(res, 'plid & pltitle required');
+  }
+
+  const playlist = await PlaylistDB.findById(plid);
+  if (_.isNil(playlist)) {
+    return util.send404(res, `plid = ${plid}`);
+  }
+
+  if (playlist.creator.uname !== req.user.uname) {
+    return util.sendUnauthorized(res);
+  }
+  await PlaylistDB.changeName(plid, pltitle);
+  return util.sendOK;
+}
+
+async function addTrack(req: Request, res: Response, next: NextFunction) {
+  const { plid, trid } = req.body;
+
+  if (!_.isString(plid) || !_.isString(trid)) {
+    return util.sendErr(res, 'plid & trid required');
+  }
+
+  try {
+    await PlaylistDB.addTrack(plid, trid);
+    util.sendOK(res);
+  } catch (error) {
+    util.sendErr(res, error);
+  }
+}
+
+async function delTrack(req: Request, res: Response, next: NextFunction) {
+  const plid = req.params.plid;
+  const trid = req.body.plid;
+
+  if (!_.isString(plid) || !_.isString(trid)) {
+    return util.sendErr(res, 'plid & trid required');
+  }
+
+  try {
+    await PlaylistDB.delTrack(plid, trid);
+    util.sendOK(res);
+  } catch (error) {
+    util.sendErr(res, error);
+  }
+}
+
 async function get(req: Request, res: Response, next: NextFunction) {
   const id = req.params.id as string;
   const pl = await PlaylistDB.findById(id, true);
@@ -37,8 +99,30 @@ async function get(req: Request, res: Response, next: NextFunction) {
 }
 
 async function getMine(req: Request, res: Response, next: NextFunction) {
-  const id = req.params.id as string;
-  const pl = await PlaylistDB.findById(id, true);
+  const pls = await PlaylistDB.findByCreatedBy(req.user.uname);
+  res.status(200).json(pls);
+}
 
-  pl ? res.json(pl) : res.status(404).send('not found');
+async function getBy(req: Request, res: Response, next: NextFunction) {
+  const uname = req.params.uname;
+  if (!_.isString(uname)) {
+    util.sendErr(res, 'uname required');
+  }
+  const pls = await PlaylistDB.findByCreatedBy(uname);
+  res.status(200).json(pls);
+}
+
+async function del(req: Request, res: Response, next: NextFunction) {
+  const plid = req.params.plid;
+
+  if (!_.isString(plid)) {
+    return util.sendErr(res, 'plid required');
+  }
+
+  try {
+    await PlaylistDB.del(plid);
+    util.sendOK(res);
+  } catch (error) {
+    util.sendErr(res, error);
+  }
 }

@@ -9,8 +9,15 @@ export function getEnv(key: string, must?: boolean) {
 }
 
 export function sendErr(res: any, err: string) {
-  console.log(err);
-  res.status(400).send({err});
+  res.status(400).send({ err });
+}
+
+export function send404(res: any, whatNotFound: string) {
+  res.status(400).send({ err: `${whatNotFound || 'resource'} not found` });
+}
+
+export function sendUnauthorized(res: any) {
+  res.status(400).send({ err: 'not allowed' });
 }
 
 export function sendOK(res: any, msg?: string) {

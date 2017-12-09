@@ -34,5 +34,5 @@ export interface Playlist {
   pltitle: string;
   creator: User;
   created_at: Date;
-  tracks: [Track];
+  tracks: Track[];
 }
