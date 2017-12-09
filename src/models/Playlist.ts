@@ -72,16 +72,18 @@ export async function create(uname: string, playlist: Playlist) {
   }).filter((tr) => !_.isNil(tr));
 
   const result = await db.sql(
-    `INSERT INTO t_playlist (pltitle, uname) VALUES (?, ?, NOW(), ?)`,
+    `INSERT INTO t_playlist (pltitle, created_at, uname) VALUES (?, NOW(), ?)`,
     playlist.pltitle, uname,
   );
 
-  console.log('create result', result);
-  const plid = undefined as string;
+  const plid = (result as any).insertId;
 
   await Promise.all(trids.map((trid, idx) =>
     db.sql(`INSERT INTO t_playlist_track (plid, trid, seq) VALUES (?, ?, ?);`, plid, trid, idx),
   ));
+
+  const inserted = await (findById(plid));
+  return inserted;
 }
 
 export async function changeName(plid: string, pltitle: string) {

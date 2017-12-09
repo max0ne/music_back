@@ -37,7 +37,8 @@ async function create(req: Request, res: Response, next: NextFunction) {
     pltitle, tracks,
   } as Playlist;
 
-  await PlaylistDB.create(req.user.uname, playlist);
+  const created = await PlaylistDB.create(req.user.uname, playlist);
+  res.status(200).send(created);
 }
 
 async function changeName(req: Request, res: Response, next: NextFunction) {
@@ -92,8 +93,12 @@ async function delTrack(req: Request, res: Response, next: NextFunction) {
 }
 
 async function get(req: Request, res: Response, next: NextFunction) {
-  const id = req.params.id as string;
-  const pl = await PlaylistDB.findById(id, true);
+  const { plid } = req.query;
+  if (!util.isValidParam(plid)) {
+    return util.sendErr(res, 'plid required');
+  }
+
+  const pl = await PlaylistDB.findById(plid);
 
   pl ? res.json(pl) : res.status(404).send('not found');
 }

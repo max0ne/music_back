@@ -1,58 +1,98 @@
 import { } from 'jest';
 import * as supertest from 'supertest';
 import * as _ from 'lodash';
+import * as testUtil from './testUtil';
 
 const request = supertest('http://localhost:3000/api');
 
-const randomUserName = `test_user_${new Date().toISOString()}`;
-const user = {
-  uname: randomUserName,
-  password: 'hahahhahah',
-  first_name: 'fooo',
-  email: 'hah@hah.com',
-};
-const changedUserName = 'hahha';
+describe('playlist', () => {
+  const uname1 = new Date().toISOString() + '_user1';
+  const uname2 = new Date().toISOString() + '_user2';
+  let tok1 = '';
+  let tok2 = '';
 
-let token: string | undefined;
+  beforeAll(async (done) => {
+    [tok1, tok2] = await Promise.all([uname1, uname2].map((uname) =>
+      request
+        .post('/user/register')
+        .set('Accept', 'application/json')
+        .send(testUtil.makeUser(uname))
+        .expect(200)
+        .then((res) => res.body.token),
+    ));
+    done();
+  });
 
-describe('POST /user/register', () => {
-  it('should return 200', () =>
+  afterAll(async (done) => {
+    await Promise.all([tok1, tok2].map((tok) =>
+      request
+        .delete('/user')
+        .set('Accept', 'application/json')
+        .set('Authorization', `Bearer ${tok}`)
+        .expect(200)
+        .then((res) => res.body.token),
+    ));
+    done();
+  });
+
+  const pltitle = new Date().toISOString() + 'test title';
+  let plid;
+
+  const isValidPlaylist = (pl) => {
+    return ['plid', 'tracks'].every((key) => _.has(pl, key));
+  };
+
+  it('can create playlist', () =>
     request
-      .post('/user/register')
+      .post('/playlist/')
       .set('Accept', 'application/json')
-      .send(user)
+      .set('Authorization', `Bearer ${tok1}`)
+      .send({
+        tracks: ['000gNUsabGghVECfQJSiww', '000OGC1A8SOrhkaZ5WfkYj'],
+        pltitle,
+      })
       .expect(200)
       .then((res) => {
-        token = res.body.token;
-        expect(res.body.token).toBeTruthy();
-        expect(res.body.user).toBeTruthy();
+        console.log(res.body);
+        const pl = res.body;
+        expect(isValidPlaylist(pl)).toBeTruthy();
+        plid = pl.plid;
       }),
   );
-});
 
-// describe('POST /playlist/:uname', () => {
-//   it('should return 200', () =>
-//     request
-//       .post(`/playlist`)
-//       .set('Authorization', `Bearer ${token}`)
-//       .expect(200),
-//   );
-// });
-
-// describe('GET /playlist/:uname', () => {
-//   it('should return 200', () =>
-//     request
-//       .get(`/user/${randomUserName}`)
-//       .set('Authorization', `Bearer ${token}`)
-//       .expect(200),
-//   );
-// });
-
-describe('POST /user', () => {
-  it('should return 200', () =>
+  it('can get', () =>
     request
-      .delete('/user')
-      .set('Authorization', `Bearer ${token}`)
+      .get(`/playlist`)
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok1}`)
+      .query({ plid })
+      .expect(200)
+      .then((res) => res.body)
+      .then((pl) => {
+        expect(isValidPlaylist(pl)).toBeTruthy();
+      }),
+  );
+
+  it('can change name', () =>
+    request
+      .put(`/playlist/${plid}/changeName`)
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok1}`)
+      .send({ pltitle: 'new title' })
       .expect(200),
+  );
+
+  return;
+
+  it('did change name', () =>
+    request
+      .get(`/playlist/${plid}`)
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok1}`)
+      .expect(200)
+      .then((res) => res.body)
+      .then((pl) => {
+        expect(pl.pltitle).toBe('new title');
+      }),
   );
 });

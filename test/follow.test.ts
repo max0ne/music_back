@@ -5,7 +5,7 @@ import * as testUtil from './testUtil';
 
 const request = supertest('http://localhost:3000/api');
 
-describe('follow stuff', () => {
+describe('follow stuff', async () => {
   const uname1 = new Date().toISOString() + '_user1';
   const uname2 = new Date().toISOString() + '_user2';
   let tok1 = '';
@@ -45,7 +45,6 @@ describe('follow stuff', () => {
       .expect(200)
       .then((res) => {
         const followed = res.body;
-        console.log(followed);
         expect(_.isArray(followed)).toBeTruthy();
         expect(followed.length).toBe(0);
       }),

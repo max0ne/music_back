@@ -23,3 +23,7 @@ export function sendUnauthorized(res: any) {
 export function sendOK(res: any, msg?: string) {
   res.status(200).send({ msg: msg || 'ok' });
 }
+
+export function isValidParam(param: any) {
+  return _.isString(param) || _.isNumber(param);
+}
