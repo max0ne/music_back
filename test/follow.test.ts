@@ -23,6 +23,18 @@ describe('follow stuff', () => {
     done();
   });
 
+  afterAll(async (done) => {
+    await Promise.all([tok1, tok2].map((tok) =>
+      request
+        .delete('/user')
+        .set('Accept', 'application/json')
+        .set('Authorization', `Bearer ${tok}`)
+        .expect(200)
+        .then((res) => res.body.token),
+    ));
+    done();
+  });
+
   console.log(tok1, tok2);
 
   it('have zero follows after reg', async () =>
