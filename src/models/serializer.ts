@@ -19,7 +19,7 @@ import {
   FdvaluePlaylistDelTrack,
 } from './Models';
 
-export const trackKeys = ['trid', 'trtitle', 'trduration', 'genre', 'arid'];
+export const trackKeys = ['trid', 'trtitle', 'trduration', 'genre'];
 
 export const userKeys = ['uname', 'first_name', 'last_name', 'email', 'city'];
 

@@ -44,26 +44,12 @@ const findObjectsWithKey = (key: string) => (obj: any, cb: (found: any) => void)
   findIt(obj, cb);
 };
 
-function swizzleResonseJson(req: Request, res: Response, next: NextFunction, handler: (jsonStuff: any) => Promise<any>) {
-  const oldJson = res.json;
-  (res as any).json = async (json: any) => {
-    oldJson(json);
-    return;
-
-    try {
-      const stuff = await handler(json);
-      oldJson(stuff);
-    }
-    catch (error) {
-      util.handleError(error, req, res, next);
-    }
-  };
-}
-
 const jsonAsync = (handler: (...params: any[]) => Promise<any>) => {
   return mung.jsonAsync(async (body, req, res) => {
     try {
-      return await handler(body, req, res);
+      const newBody = await handler(body, req, res);
+      console.log('newBody', JSON.stringify(newBody));
+      return newBody;
     } catch (error) {
       util.handleError(error, req, res, () => { });
     }
@@ -92,6 +78,7 @@ export function insertTrackRates() {
 
     const ids = [] as string[];
     findObjectsWithKey('trid')(body, (track) => ids.push(track.trid));
+    console.log(ids);
     const ratings = await TrackDB.getRatingsForTracks(req.user.uname, ids);
     findObjectsWithKey('trid')(body, (track) => track.ratings = ratings[track.trid]);
     return body;

@@ -9,9 +9,10 @@ import * as serializer from './serializer';
 
 export async function findById(id: string) {
   const sql = `
-  SELECT ${[...serializer.playlistKeys, ...serializer.trackKeys, ...serializer.userKeys].join(', ')} FROM t_playlist
+  SELECT ${[...serializer.playlistKeys, ...serializer.trackKeys, ...serializer.artistKeys, ...serializer.userKeys].join(', ')} FROM t_playlist
     LEFT JOIN t_playlist_track USING (plid)
     LEFT JOIN t_track USING (trid)
+    LEFT JOIN t_artist USING (arid)
     INNER JOIN t_user USING (uname)
   WHERE plid = ?;
   `;

@@ -25,7 +25,12 @@ import * as UserDB from './User';
 import * as serializer from './serializer';
 
 async function addFeed(uname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
-  const json = JSON.stringify(fdvalue);
+  const copiedFdvalue = JSON.parse(JSON.stringify(fdvalue));
+  _.keys(copiedFdvalue).forEach((key) => {
+    delete copiedFdvalue[key];
+  });
+
+  const json = JSON.stringify(copiedFdvalue);
   const sql = `
     INSERT INTO t_feed (uname, created_at, fdtype, fdvalue)
     SELECT follower_uname, NOW(), ?, ? FROM t_follow

@@ -101,12 +101,8 @@ async function addTrack(req: Request, res: Response, next: NextFunction) {
     playlist,
   });
 
-  try {
-    await PlaylistDB.addTrack(plid, trid);
-    util.sendOK(res);
-  } catch (error) {
-    util.sendErr(res, error);
-  }
+  await PlaylistDB.addTrack(plid, trid);
+  util.sendOK(res);
 }
 
 async function delTrack(req: Request, res: Response, next: NextFunction) {

@@ -43,5 +43,6 @@ export function catchAsyncError(handler: (req: Request, res: Response, next: Nex
 }
 
 export function handleError(error: Error, req: Request, res: Response, next: NextFunction) {
+  console.error(error);
   errorHandler()(error, req, res, next);
 }

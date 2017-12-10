@@ -27,14 +27,13 @@ import * as config from '../config/config';
 
 export const router = express.Router();
 
-router.post('/:trid/rate', util.catchAsyncError(rate));
-router.post('/:trid/unrate', util.catchAsyncError(unrate));
-router.post('/:trid/played', util.catchAsyncError(played));
+router.post('/rate', util.catchAsyncError(rate));
+router.post('/unrate', util.catchAsyncError(unrate));
+router.post('/played', util.catchAsyncError(played));
 router.get('/search', util.catchAsyncError(search));
 
 async function rate(req: Request, res: Response, next: NextFunction) {
-  const { rating } = req.body;
-  const { trid } = req.params;
+  const { trid, rating } = req.body;
 
   if (!util.isValidParam(trid, rating)) {
     return util.sendErr(res, 'trid, rating required');
@@ -59,8 +58,11 @@ async function rate(req: Request, res: Response, next: NextFunction) {
 }
 
 async function unrate(req: Request, res: Response, next: NextFunction) {
-  const { trid } = req.params;
+  const { trid } = req.body;
 
+  if (!util.isValidParam(trid)) {
+    return util.sendErr(res, 'trid required');
+  }
   await TrackDB.unrateTrack(req.user.uname, trid);
   return util.sendOK(res);
 }
@@ -68,6 +70,9 @@ async function unrate(req: Request, res: Response, next: NextFunction) {
 async function played(req: Request, res: Response, next: NextFunction) {
   const { trid } = req.params;
 
+  if (!util.isValidParam(trid)) {
+    return util.sendErr(res, 'trid required');
+  }
   await TrackDB.addPlayedHistory(req.user.uname, trid);
   return util.sendOK(res);
 }
