@@ -14,6 +14,7 @@ import {
   Fdtype,
   FdvalueLike,
   FdvalueFollow,
+  FdvalueFollowedBy,
   FdvalueRate,
   FdvaluePlaylistCreate,
   FdvaluePlaylistAddTrack,
@@ -25,7 +26,7 @@ import * as util from '../util';
 import * as config from '../config/config';
 
 export const router = express.Router();
-router.get('/feeds', getFeeds);
+router.get('/', getFeeds);
 
 async function getFeeds(req: Request, res: Response, next: NextFunction) {
   const { offset, limit } = req.query;

@@ -26,6 +26,7 @@ import * as albumRouter from './controllers/album';
 import * as playlistRouter from './controllers/playlist';
 import * as userRouter from './controllers/user';
 import * as artistRouter from './controllers/artist';
+import * as feedRouter from './controllers/feed';
 
 /**
  * API keys and Passport configuration.
@@ -72,6 +73,7 @@ apiRouter.use('/album', albumRouter.router);
 apiRouter.use('/playlist', playlistRouter.router);
 apiRouter.use('/user', userRouter.router);
 apiRouter.use('/artist', artistRouter.router);
+apiRouter.use('/feed', feedRouter.router);
 
 app.use('/api', apiRouter);
 

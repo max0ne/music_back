@@ -11,6 +11,7 @@ import {
   Fdtype,
   FdvalueLike,
   FdvalueFollow,
+  FdvalueFollowedBy,
   FdvalueRate,
   Feed,
   FdvaluePlaylistCreate,
@@ -56,6 +57,10 @@ export async function addLikeFeed(uname: string, fdvalue: FdvalueLike) {
 
 export async function addFollowFeed(uname: string, fdvalue: FdvalueFollow) {
   return addFeed(uname, Fdtype.Follow, fdvalue);
+}
+
+export async function addFollowedByFeed(uname: string, fdvalue: FdvalueFollowedBy) {
+  return addFeed(uname, Fdtype.FollowedBy, fdvalue);
 }
 
 export async function addRateFeed(uname: string, fdvalue: FdvalueRate) {

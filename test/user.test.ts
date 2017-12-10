@@ -78,7 +78,7 @@ describe('GET /user/:uname', () => {
   );
 });
 
-describe('POST /user', () => {
+describe('delete /user', () => {
   it('should return 200', () =>
     request
       .delete('/user')

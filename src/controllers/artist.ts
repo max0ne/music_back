@@ -14,6 +14,7 @@ import {
   Fdtype,
   FdvalueLike,
   FdvalueFollow,
+  FdvalueFollowedBy,
   FdvalueRate,
   FdvaluePlaylistCreate,
   FdvaluePlaylistAddTrack,

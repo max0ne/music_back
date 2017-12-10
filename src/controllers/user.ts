@@ -17,6 +17,7 @@ import {
   Fdtype,
   FdvalueLike,
   FdvalueFollow,
+  FdvalueFollowedBy,
   FdvalueRate,
   FdvaluePlaylistCreate,
   FdvaluePlaylistAddTrack,
@@ -139,9 +140,15 @@ async function postFollow(req: Request, res: Response, next: NextFunction) {
   }
   await UserDB.follow(from, to);
 
+  // @todo: this should actually be from request user context middleware
+  const fromUser = await UserDB.findByUname(from);
+
   // post feed
-  await FeedDB.addFollowFeed(req.user.uname, {
+  await FeedDB.addFollowFeed(from, {
     followee: toUser,
+  });
+  await FeedDB.addFollowedByFeed(to, {
+    follower: fromUser,
   });
 
   return util.sendOK(res);
