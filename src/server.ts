@@ -67,7 +67,7 @@ app.use(lusca.xssProtection(true));
 
 const apiRouter = express.Router();
 
-apiRouter.use(jwt({ secret: util.getEnv('JWT_SECRET', true) }).unless({ path: ['/api/user/login', '/api/user/register'] }));
+apiRouter.use(jwt({ secret: util.getEnv('JWT_SECRET', true) }).unless({ path: ['/api/user/login', '/api/user/register', '/api/album/new'] }));
 
 apiRouter.use('/album', albumRouter.router);
 apiRouter.use('/playlist', playlistRouter.router);

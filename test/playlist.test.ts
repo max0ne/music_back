@@ -2,17 +2,20 @@ import { } from 'jest';
 import * as supertest from 'supertest';
 import * as _ from 'lodash';
 import * as testUtil from './testUtil';
+import { Fdtype } from '../src/models/Models';
 
 const request = supertest('http://localhost:3000/api');
 
 describe('playlist', () => {
   const uname1 = new Date().toISOString() + '_user1';
   const uname2 = new Date().toISOString() + '_user2';
+  const uname3 = new Date().toISOString() + '_user3';
   let tok1 = '';
   let tok2 = '';
+  let tok3 = '';
 
   beforeAll(async (done) => {
-    [tok1, tok2] = await Promise.all([uname1, uname2].map((uname) =>
+    [tok1, tok2, tok3] = await Promise.all([uname1, uname2, uname3].map((uname) =>
       request
         .post('/user/register')
         .set('Accept', 'application/json')
@@ -24,7 +27,7 @@ describe('playlist', () => {
   });
 
   afterAll(async (done) => {
-    await Promise.all([tok1, tok2].map((tok) =>
+    await Promise.all([tok1, tok2, tok3].map((tok) =>
       request
         .delete('/user')
         .set('Accept', 'application/json')
@@ -36,11 +39,47 @@ describe('playlist', () => {
   });
 
   const pltitle = new Date().toISOString() + 'test title';
+  const expectedFdtypes = [] as Fdtype[];
   let plid;
+
+  const checkFeeds = (message) => {
+    it(`check feeds after ${message}`, () =>
+      request
+        .get(`/feed`)
+        .query({ plid })
+        .set('Accept', 'application/json')
+        .set('Authorization', `Bearer ${tok3}`)
+        .expect(200)
+        .then((res) => {
+          const feeds = res.body;
+          expect(_.isArray(feeds)).toBeTruthy();
+          expect(_.map(feeds, 'fdtype')).toEqual(_.reverse([...expectedFdtypes]));
+        }),
+    );
+  };
 
   const isValidPlaylist = (pl) => {
     return ['plid', 'tracks'].every((key) => _.has(pl, key));
   };
+
+  it('can follow other with return 200', async () =>
+    Promise.all([
+      request
+        .post('/user/follow')
+        .set('Accept', 'application/json')
+        .set('Authorization', `Bearer ${tok3}`)
+        .send({ uname: uname1 })
+        .expect(200),
+      request
+        .post('/user/follow')
+        .set('Accept', 'application/json')
+        .set('Authorization', `Bearer ${tok3}`)
+        .send({ uname: uname2 })
+        .expect(200),
+    ]),
+  );
+
+  checkFeeds('after followed others');
 
   it('can create playlist', () =>
     request
@@ -56,8 +95,12 @@ describe('playlist', () => {
         const pl = res.body;
         expect(isValidPlaylist(pl)).toBeTruthy();
         plid = pl.plid;
+
+        expectedFdtypes.push(Fdtype.PlaylistCreate);
       }),
   );
+
+  checkFeeds('create playlist');
 
   it('can get', () =>
     request
@@ -80,6 +123,8 @@ describe('playlist', () => {
       .send({ pltitle: 'new title' })
       .expect(200),
   );
+
+  checkFeeds('change name');
 
   it('did change name', () =>
     request
@@ -106,7 +151,7 @@ describe('playlist', () => {
         expect(isValidPlaylist(res.body[0]));
         expect(res.body[0].plid).toBe(plid);
       }),
-    );
+  );
 
   it('can get others', () =>
     request
@@ -128,8 +173,27 @@ describe('playlist', () => {
       .set('Accept', 'application/json')
       .set('Authorization', `Bearer ${tok1}`)
       .send({ trid: '001LKjMxQcD7impp1Fxfsj' })
-      .expect(200),
+      .expect(200)
+      .then(() => {
+        expectedFdtypes.push(Fdtype.PlaylistAddTrack);
+      }),
   );
+
+  checkFeeds('add track');
+
+  it('can addTrack again', () =>
+    request
+      .put(`/playlist/${plid}/addTrack`)
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${tok1}`)
+      .send({ trid: '0021ajfstgNduRZ9N2ak7P' })
+      .expect(200)
+      .then(() => {
+        expectedFdtypes.push(Fdtype.PlaylistAddTrack);
+      }),
+  );
+
+  checkFeeds('add track');
 
   it('did addTrack', () =>
     request
@@ -140,7 +204,7 @@ describe('playlist', () => {
       .expect(200)
       .then((res) => res.body)
       .then((pl) => {
-        expect(pl.tracks.length).toBe(3);
+        expect(pl.tracks.length).toBe(4);
         expect(_.map(pl.tracks, 'trid').indexOf('001LKjMxQcD7impp1Fxfsj')).not.toBe(-1);
       }),
   );
@@ -151,8 +215,13 @@ describe('playlist', () => {
       .set('Accept', 'application/json')
       .set('Authorization', `Bearer ${tok1}`)
       .send({ trid: '001LKjMxQcD7impp1Fxfsj' })
-      .expect(200),
+      .expect(200)
+      .then(() => {
+        expectedFdtypes.push(Fdtype.PlaylistDelTrack);
+      }),
   );
+
+  checkFeeds('del track');
 
   it('did delTrack', () =>
     request
@@ -163,7 +232,7 @@ describe('playlist', () => {
       .expect(200)
       .then((res) => res.body)
       .then((pl) => {
-        expect(pl.tracks.length).toBe(2);
+        expect(pl.tracks.length).toBe(3);
         expect(_.map(pl.tracks, 'trid').indexOf('001LKjMxQcD7impp1Fxfsj')).toBe(-1);
       }),
   );
@@ -184,4 +253,7 @@ describe('playlist', () => {
       .set('Authorization', `Bearer ${tok1}`)
       .expect(404),
   );
+
+  checkFeeds('del playlist');
+
 });

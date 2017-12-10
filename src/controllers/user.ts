@@ -147,7 +147,7 @@ async function postFollow(req: Request, res: Response, next: NextFunction) {
   await FeedDB.addFollowFeed(from, {
     followee: toUser,
   });
-  await FeedDB.addFollowedByFeed(to, {
+  await FeedDB.addFollowedByFeedToSpecificUser(to, {
     follower: fromUser,
   });
 

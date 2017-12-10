@@ -52,7 +52,9 @@ async function getNewAlbums(req: Request, res: Response, next: NextFunction) {
   const { offset, limit } = req.query;
   const albums = await AlbumDB.recentAlbums(offset || 0, limit || config.defaultLimit);
 
-  await insertRating(req)(albums);
+  if (req.user && req.user.uname) {
+    await insertRating(req)(albums);
+  }
 
   res.status(200).send(albums);
 }
