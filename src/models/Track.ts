@@ -61,10 +61,19 @@ export async function search(keyword: string, offset: number, limit: number) {
   WHERE trtitle LIKE ?
   LIMIT ? OFFSET ?;
   `;
+  const countSql = `
+  SELECT count(*) as total FROM t_track
+  WHERE trtitle LIKE ?;
+  `;
   const results = (await db.sql(
     sql, `%${keyword}%`, limit, offset,
   ));
-  return results.map(serializer.trackFromResult);
+  const total = (await db.sql(countSql, `%${keyword}%`))[0].total;
+  const items = results.map(serializer.trackFromResult);
+  return {
+    items,
+    total,
+  };
 }
 
 export async function addPlayedHistory(uname: string, trid: string) {

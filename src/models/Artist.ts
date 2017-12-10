@@ -18,11 +18,21 @@ export async function search(keyword: string, offset: number, limit: number) {
   OR ardesc LIKE ?
   LIMIT ? OFFSET ?;
   `;
+  const countSql = `
+  SELECT count(*) as total
+  FROM t_artist
+  WHERE arname LIKE ?
+  OR ardesc LIKE ?
+  `;
   const results = (await db.sql(
     sql, `%${keyword}%`, `%${keyword}%`, limit, offset,
   ));
+  const total = (await db.sql(countSql, `%${keyword}%`, `%${keyword}%`))[0].total;
 
-  return results.map(serializer.artistFromResult);
+  return {
+    items: results.map(serializer.artistFromResult),
+    total,
+  };
 }
 
 export async function like(uname: string, arid: string) {

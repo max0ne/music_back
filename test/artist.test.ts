@@ -50,8 +50,9 @@ describe('artist', () => {
         .expect(200)
         .then((res) => {
           const feeds = res.body;
-          expect(_.isArray(feeds)).toBeTruthy();
-          expect(_.map(feeds, 'fdtype')).toEqual(_.reverse([...expectedFdtypes]));
+          expect(_.isArray(feeds.items)).toBeTruthy();
+          expect(_.map(feeds.items, 'fdtype')).toEqual(_.reverse([...expectedFdtypes]));
+          expect(feeds.total).toEqual(expectedFdtypes.length);
         }),
     );
   };

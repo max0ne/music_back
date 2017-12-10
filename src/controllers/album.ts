@@ -56,6 +56,7 @@ async function search(req: Request, res: Response, next: NextFunction) {
     return util.sendErr(res, 'keyword as string required');
   }
 
-  const playlists = await AlbumDB.search(keyword, parseInt(offset, 10) || 0, parseInt(limit, 10) || config.defaultLimit);
-  return res.status(200).send(playlists);
+  const albums = await AlbumDB.search(keyword, parseInt(offset, 10) || 0, parseInt(limit, 10) || config.defaultLimit);
+  console.log(albums);
+  return res.status(200).send(albums);
 }

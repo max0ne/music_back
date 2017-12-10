@@ -40,11 +40,18 @@ export async function search(keyword: string, offset: number, limit: number) {
   WHERE pltitle LIKE ?
   LIMIT ? OFFSET ?;
   `;
+  const countSql = `
+  SELECT count(*) AS total FROM t_playlist
+  WHERE pltitle LIKE ?;
+  `;
   const results = (await db.sql(
     sql, `%${keyword}%`, limit, offset,
   ));
-
-  return results.map(serializer.playlistFromResult);
+  const total = (await db.sql(countSql, `%${keyword}%`))[0].total;
+  return {
+    items: results.map(serializer.playlistFromResult),
+    total,
+  };
 }
 
 export async function create(uname: string, playlist: Playlist) {

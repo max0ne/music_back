@@ -87,6 +87,15 @@ export async function getFeeds(uname: string, offset: number, limit: number) {
     WHERE uname = ?
     ORDER BY fdid DESC LIMIT ? OFFSET ?;
   `;
+  const countSql = `
+    SELECT count(*) AS total
+    FROM t_feed
+    WHERE uname = ?;
+  `;
   const result = await db.sql(sql, uname, limit, offset);
-  return result.map(serializer.feedFromResult);
+  const total = (await db.sql(countSql, uname))[0].total;
+  return {
+    items: result.map(serializer.feedFromResult),
+    total,
+  };
 }

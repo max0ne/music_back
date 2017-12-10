@@ -74,9 +74,17 @@ export async function search(keyword: string, offset: number, limit: number) {
   WHERE altitle LIKE ?
   LIMIT ? OFFSET ?;
   `;
+  const countSql = `
+  SELECT count(*) AS total FROM t_album
+  WHERE altitle LIKE ?
+  `;
   const results = (await db.sql(
     sql, `%${keyword}%`, limit, offset,
   ));
+  const total = (await db.sql(countSql, `%${keyword}%`))[0].total;
 
-  return results.map(serializer.albumFromResult);
+  return {
+    items: results.map(serializer.albumFromResult),
+    total,
+  };
 }
