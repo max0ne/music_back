@@ -5,26 +5,28 @@ import * as express from 'express';
 import * as _ from 'lodash';
 const { check } = require('express-validator/check');
 
-import { Album, Playlist, Track, User } from '../models/Models';
+import { Album, Artist, Feed, Playlist, Track, User } from '../models/Models';
 import * as TrackDB from '../models/Track';
 import * as util from '../util';
 export default (req: Express.Request) => async (whatever: any) => {
 
   const findTrackObjects = (obj: any, cb: (track: Track) => void) => {
-    _.keys(obj).forEach((key) => {
-      const val = obj[key];
-      if (_.isArray(val)) {
-        val.forEach((obj) => findTrackObjects(obj, cb));
-      } else if (_.isString(obj) || _.isNumber(obj)) {
-        return;
-      } else if (_.has(obj, 'trid')) {
+    if (_.isString(obj) || _.isNumber(obj)) {
+      return;
+    } else if (_.isArray(obj)) {
+      obj.forEach((obj) => findTrackObjects(obj, cb));
+    } else {
+      if (_.has(obj, 'trid')) {
         cb(obj);
+      } else {
+        _.values(obj).forEach((obj) => findTrackObjects(obj, cb));
       }
-    });
+    }
   };
 
   const trids = [] as string[];
   findTrackObjects(whatever, (track) => trids.push(track.trid));
+
   const ratings = await TrackDB.getRatingsForTracks(trids, req.user.uname);
   findTrackObjects(whatever, (track) => track.rating = ratings[track.trid]);
 };

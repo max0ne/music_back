@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt-nodejs';
 import * as _ from 'lodash';
 import * as db from './db';
-import { Album, Playlist, Track, User } from './Models';
+import { Album, Artist, Feed, Playlist, Track, User } from './Models';
 import * as TrackDB from './Track';
 import * as util from '../util';
 

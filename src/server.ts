@@ -30,7 +30,7 @@ import * as artistRouter from './controllers/artist';
 /**
  * API keys and Passport configuration.
  */
-import * as passportConfig from './config/passport';
+// import * as passportConfig from './config/passport';
 
 /**
  * Create Express server.

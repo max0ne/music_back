@@ -5,7 +5,7 @@ import * as express from 'express';
 import * as _ from 'lodash';
 const { check } = require('express-validator/check');
 
-import { Album, Playlist, Track, User } from '../models/Models';
+import { Album, Artist, Feed, Playlist, Track, User } from '../models/Models';
 import * as ArtistDB from '../models/Artist';
 import * as util from '../util';
 

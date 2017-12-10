@@ -37,3 +37,30 @@ export interface Playlist {
   created_at: Date;
   tracks: Track[];
 }
+
+enum Fdtype {
+  Like = 1,
+  Follow = 2,
+  Rate = 3,
+}
+
+export interface FdvalueLike {
+  artist: Artist;
+}
+
+export interface FdvalueFollow {
+  followee: User;
+}
+
+export interface FdvalueRate {
+  track: Track;
+  rating: number;
+}
+
+export interface Feed {
+  fdid: string;
+  uname: string;
+  created_at: Date;
+  fdtype: Fdtype;
+  fdvalue: FdvalueLike | FdvalueFollow | FdvalueRate;
+}

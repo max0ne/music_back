@@ -8,7 +8,7 @@ import * as passport from 'passport';
 const { check } = require('express-validator/check');
 import * as jwt from 'jsonwebtoken';
 
-import { Album, Playlist, Track, User } from '../models/Models';
+import { Album, Artist, Feed, Playlist, Track, User } from '../models/Models';
 import * as UserDB from '../models/User';
 import * as util from '../util';
 import { sendErr } from '../util';
