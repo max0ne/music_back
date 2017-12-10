@@ -49,3 +49,18 @@ export async function unlike(uname: string, arid: string) {
     arid, uname,
   );
 }
+
+export async function findLiked(uname: string, arids: string[]) {
+  const likeds = {} as { [arid: string]: boolean };
+  arids.forEach((id) => likeds[id] = false);
+  if (arids.length === 0) {
+    return likeds;
+  }
+  const sql = `
+  SELECT * FROM t_like WHERE uname = ? AND arid IN (${arids.map(() => '?').join(', ')});
+  `;
+  const results = await db.sql(sql, uname, ...arids);
+  results.forEach((res) => likeds[res.arid] = true);
+
+  return likeds;
+}

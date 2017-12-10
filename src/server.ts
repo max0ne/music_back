@@ -28,6 +28,7 @@ import * as userRouter from './controllers/user';
 import * as artistRouter from './controllers/artist';
 import * as feedRouter from './controllers/feed';
 import * as trackRouter from './controllers/track';
+import * as insertRateStuff from './controllers/insertRateStuff';
 
 /**
  * API keys and Passport configuration.
@@ -51,18 +52,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(expressValidator());
 app.use(morgan('dev'));
 
-// app.use(session({
-//   resave: true,
-//   saveUninitialized: true,
-//   secret: util.getEnv('SESSION_SECRET', true),
-//   // store: new MongoStore({
-//   //   url: process.env.MONGODB_URI || process.env.MONGOLAB_URI,
-//   //   autoReconnect: true,
-//   // }),
-// }));
-// app.use(passport.initialize());
-// app.use(passport.session());
-
 app.use(lusca.xframe('SAMEORIGIN'));
 app.use(lusca.xssProtection(true));
 
@@ -78,6 +67,9 @@ apiRouter.use(jwt({ secret: util.getEnv('JWT_SECRET', true) })
     '/api/album/search',
     '/api/artist/search',
   ] }));
+
+apiRouter.use(insertRateStuff.insertArtistLikeds() as any);
+apiRouter.use(insertRateStuff.insertTrackRates() as any);
 
 apiRouter.use('/album', albumRouter.router);
 apiRouter.use('/playlist', playlistRouter.router);

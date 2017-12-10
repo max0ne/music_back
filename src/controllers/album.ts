@@ -8,8 +8,6 @@ import * as passport from 'passport';
 const { check } = require('express-validator/check');
 import * as util from '../util';
 
-import insertRating from './insertRating';
-
 import * as AlbumDB from '../models/Album';
 import {
   Album,
@@ -33,7 +31,7 @@ import * as config from '../config/config';
 export const router = express.Router();
 
 router.get('/', util.catchAsyncError(getAlbum));
-router.get('/new', util.catchAsyncError(getNewAlbums));
+router.get('/new',  util.catchAsyncError(getNewAlbums));
 router.get('/search', util.catchAsyncError(search));
 
 async function getAlbum(req: Request, res: Response, next: NextFunction) {
@@ -43,20 +41,12 @@ async function getAlbum(req: Request, res: Response, next: NextFunction) {
   }
 
   const album = await AlbumDB.findById(alid, true);
-
-  await insertRating(req)(album);
-
   album ? res.json(album) : res.status(404).send('not found');
 }
 
 async function getNewAlbums(req: Request, res: Response, next: NextFunction) {
   const { offset, limit } = req.query;
   const albums = await AlbumDB.recentAlbums(offset || 0, limit || config.defaultLimit);
-
-  if (req.user && req.user.uname) {
-    await insertRating(req)(albums);
-  }
-
   res.status(200).send(albums);
 }
 

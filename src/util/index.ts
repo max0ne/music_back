@@ -37,7 +37,11 @@ export function catchAsyncError(handler: (req: Request, res: Response, next: Nex
       await handler(req, res, next);
     }
     catch (error) {
-      errorHandler()(error, req, res, next);
+      handleError(error, req, res, next);
     }
   };
+}
+
+export function handleError(error: Error, req: Request, res: Response, next: NextFunction) {
+  errorHandler()(error, req, res, next);
 }

@@ -24,7 +24,6 @@ import * as TrackDB from '../models/Track';
 import * as util from '../util';
 import * as FeedDB from '../models/Feed';
 import * as config from '../config/config';
-import insertRating from './insertRating';
 
 export const router = express.Router();
 

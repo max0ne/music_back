@@ -25,7 +25,6 @@ import {
 import * as PlaylistDB from '../models/Playlist';
 import * as FeedDb from '../models/Feed';
 import * as util from '../util';
-import insertRating from './insertRating';
 import * as config from '../config/config';
 
 export const router = express.Router();
@@ -57,8 +56,6 @@ async function create(req: Request, res: Response, next: NextFunction) {
   } as Playlist;
 
   const created = await PlaylistDB.create(req.user.uname, playlist);
-
-  await insertRating(req)(created);
 
   await FeedDb.addPlaylistCreateFeed(req.user.uname, {
     playlist,
@@ -145,16 +142,11 @@ async function get(req: Request, res: Response, next: NextFunction) {
 
   const pl = await PlaylistDB.findById(plid);
 
-  await insertRating(req)(pl);
-
   pl ? res.json(pl) : res.status(404).send('not found');
 }
 
 async function getMine(req: Request, res: Response, next: NextFunction) {
   const pls = await PlaylistDB.findByCreatedBy(req.user.uname);
-
-  await insertRating(req)(pls);
-
   res.status(200).json(pls);
 }
 
@@ -164,8 +156,6 @@ async function getBy(req: Request, res: Response, next: NextFunction) {
     util.sendErr(res, 'uname required');
   }
   const pls = await PlaylistDB.findByCreatedBy(uname);
-
-  await insertRating(req)(pls);
 
   res.status(200).json(pls);
 }

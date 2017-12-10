@@ -40,27 +40,18 @@ export async function unrateTrack(uname: string, trid: string) {
  * @param trid one trid or list of trids
  * @param uname
  */
-export async function getRatingsForTracks(trid: string | string[], uname: string) {
-  if (_.isString(trid)) {
-    const results = await db.sql(
-      `SELECT rating FROM t_rating WHERE trid = ? AND uname = ?;`,
-      trid, uname,
-    );
-    return _.map(results, 'rating')[0];
-  } else {
-    const results = await db.sql(
-      `SELECT rating, trid FROM t_rating WHERE trid IN (${trid.map(() => '?').join(',')}) AND uname = ?;`,
-      ...trid, uname,
-    );
-    const map = {} as { [key: string]: number };
-    trid.forEach((trid) => {
-        map[trid] = undefined;
-    });
-    results.forEach((rate) => {
-      map[rate.trid] = rate.raating;
-    });
-    return map;
+export async function getRatingsForTracks(uname: string, trid: string[]) {
+  const ratings = {} as { [trid: string]: number };
+  if (trid.length === 0) {
+    return ratings;
   }
+  const sql = `SELECT rating, trid FROM t_rating WHERE trid IN (${trid.map(() => '?').join(',')}) AND uname = ?;`;
+  const results = await db.sql(
+    sql, ...trid, uname,
+  );
+  trid.forEach((trid) => ratings[trid] = undefined);
+  results.forEach((res) => ratings[res.trid] = res.rating);
+  return ratings;
 }
 
 export async function search(keyword: string, offset: number, limit: number) {
