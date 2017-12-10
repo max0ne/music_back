@@ -49,7 +49,7 @@ async function create(req: Request, res: Response, next: NextFunction) {
   const { pltitle,  tracks } = req.body;
 
   if (!_.isString(pltitle) || !validateTracks(tracks)) {
-    return util.sendErr(res, '');
+    return util.sendErr(res, 'pltitle, tracks required');
   }
 
   const playlist = {

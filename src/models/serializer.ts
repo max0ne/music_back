@@ -39,8 +39,12 @@ export const feedKeys = [
 
 export function trackFromResult(result: any) {
   const track = modelFromResult(result, trackKeys) as Track;
-  (track as any).artist = artistFromResult(result);
-  return track;
+  if (track && track.trid) {
+    (track as any).artist = artistFromResult(result);
+    return track;
+  } else {
+    return undefined;
+  }
 }
 
 export function modelFromResult(result: any, keys: string[]) {
