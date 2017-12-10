@@ -28,10 +28,10 @@ import insertRating from './insertRating';
 
 export const router = express.Router();
 
-router.post('/:trid/rate', rate);
-router.post('/:trid/unrate', unrate);
-router.post('/:trid/played', played);
-router.get('/search', search);
+router.post('/:trid/rate', util.catchAsyncError(rate));
+router.post('/:trid/unrate', util.catchAsyncError(unrate));
+router.post('/:trid/played', util.catchAsyncError(played));
+router.get('/search', util.catchAsyncError(search));
 
 async function rate(req: Request, res: Response, next: NextFunction) {
   const { rating } = req.body;

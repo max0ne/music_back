@@ -30,15 +30,15 @@ import * as config from '../config/config';
 
 export const router = express.Router();
 
-router.get('/', get);
-router.get('/mine', getMine);
-router.get('/@:uname', getBy);
-router.get('/search', search);
-router.post('/', create);
-router.put('/:plid/changeName', changeName);
-router.put('/:plid/addTrack', addTrack);
-router.put('/:plid/delTrack', delTrack);
-router.delete('/:plid', del);
+router.get('/', util.catchAsyncError(get));
+router.get('/mine', util.catchAsyncError(getMine));
+router.get('/@:uname', util.catchAsyncError(getBy));
+router.get('/search', util.catchAsyncError(search));
+router.post('/', util.catchAsyncError(create));
+router.put('/:plid/changeName', util.catchAsyncError(changeName));
+router.put('/:plid/addTrack', util.catchAsyncError(addTrack));
+router.put('/:plid/delTrack', util.catchAsyncError(delTrack));
+router.delete('/:plid', util.catchAsyncError(del));
 
 const validateTracks = (tracks: any[]) =>
   _.isArray(tracks) &&

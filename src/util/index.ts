@@ -1,4 +1,6 @@
 import * as _ from 'lodash';
+import { Handler, NextFunction, Request, Response } from 'express';
+
 export function getEnv(key: string, must?: boolean) {
   const val = process.env[key];
   if (must && _.isNil(val)) {
@@ -26,4 +28,16 @@ export function sendOK(res: any, msg?: string) {
 
 export function isValidParam(...params: any[]) {
   return params.every((param) => _.isString(param) || _.isNumber(param));
+}
+
+export function catchAsyncError(handler: (req: Request, res: Response, next: NextFunction) => Promise<any>) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await handler(req, res, next);
+    }
+    catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  };
 }

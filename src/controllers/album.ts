@@ -32,9 +32,9 @@ import * as config from '../config/config';
 
 export const router = express.Router();
 
-router.get('/', getAlbum);
-router.get('/new', getNewAlbums);
-router.get('/search', search);
+router.get('/', util.catchAsyncError(getAlbum));
+router.get('/new', util.catchAsyncError(getNewAlbums));
+router.get('/search', util.catchAsyncError(search));
 
 async function getAlbum(req: Request, res: Response, next: NextFunction) {
   const alid = req.query.id;

@@ -28,9 +28,25 @@ import * as config from '../config/config';
 
 export const router = express.Router();
 
-router.post('/like', like);
-router.post('/unlike', unlike);
-router.get('/search', search);
+router.post('/like', util.catchAsyncError(like));
+router.post('/unlike', util.catchAsyncError(unlike));
+router.get('/search', util.catchAsyncError(search));
+router.get('/', util.catchAsyncError(get));
+
+async function get(req: Request, res: Response, next: NextFunction) {
+  const { arid } = req.query;
+
+  if (!util.isValidParam(arid)) {
+    return util.sendErr(res, 'arid required');
+  }
+
+  const artist = await ArtistDB.findById(arid);
+  if (_.isNil(artist)) {
+    return util.send404(res, 'artist');
+  }
+
+  return res.status(200).send(artist);
+}
 
 async function like(req: Request, res: Response, next: NextFunction) {
   const { arid } = req.body;

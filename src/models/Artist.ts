@@ -7,7 +7,7 @@ import * as util from '../util';
 import * as serializer from './serializer';
 
 export async function findById(arid: string) {
-  const artist = (await db.sql(`SELECT ${serializer.artistKeys.join(',')} FROM t_album WHERE alid = ?`, arid))[0] as Artist;
+  const artist = (await db.sql(`SELECT ${serializer.artistKeys.join(',')} FROM t_artist WHERE arid = ?`, arid))[0] as Artist;
   return artist;
 }
 

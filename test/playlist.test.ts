@@ -3,8 +3,7 @@ import * as supertest from 'supertest';
 import * as _ from 'lodash';
 import * as testUtil from './testUtil';
 import { Fdtype } from '../src/models/Models';
-
-const request = supertest('http://localhost:3000/api');
+import { request } from './testUtil';
 
 describe('playlist', () => {
   const uname1 = new Date().toISOString() + '_user1';

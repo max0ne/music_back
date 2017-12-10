@@ -25,7 +25,7 @@ export const userKeys = ['uname', 'first_name', 'last_name', 'email', 'city'];
 
 export const artistKeys = ['arid', 'arname', 'ardesc'];
 
-export const playlistKeys = ['pltitle', 'created_at', 'uname'];
+export const playlistKeys = ['plid', 'pltitle', 'created_at', 'uname'];
 
 export const albumKeys = ['alid', 'altitle', 'aldate'];
 

@@ -30,15 +30,15 @@ import { sendErr } from '../util';
 
 export const router = express.Router();
 
-router.post('/login', login);
-router.post('/register', register);
-router.delete('/', del);
-router.get('/@:uname', get);
-router.put('/update', update);
-router.post('/follow', postFollow);
-router.post('/unfollow', postUnfollow);
-router.get('/following', following);
-router.get('/followedBy', followedBy);
+router.post('/login', util.catchAsyncError(login));
+router.post('/register', util.catchAsyncError(register));
+router.delete('/', util.catchAsyncError(del));
+router.get('/@:uname', util.catchAsyncError(get));
+router.put('/update', util.catchAsyncError(update));
+router.post('/follow', util.catchAsyncError(postFollow));
+router.post('/unfollow', util.catchAsyncError(postUnfollow));
+router.get('/following', util.catchAsyncError(following));
+router.get('/followedBy', util.catchAsyncError(followedBy));
 
 function _genToken(uname: string) {
   return jwt.sign({
