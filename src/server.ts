@@ -27,6 +27,7 @@ import * as playlistRouter from './controllers/playlist';
 import * as userRouter from './controllers/user';
 import * as artistRouter from './controllers/artist';
 import * as feedRouter from './controllers/feed';
+import * as trackRouter from './controllers/track';
 
 /**
  * API keys and Passport configuration.
@@ -67,13 +68,23 @@ app.use(lusca.xssProtection(true));
 
 const apiRouter = express.Router();
 
-apiRouter.use(jwt({ secret: util.getEnv('JWT_SECRET', true) }).unless({ path: ['/api/user/login', '/api/user/register', '/api/album/new'] }));
+apiRouter.use(jwt({ secret: util.getEnv('JWT_SECRET', true) })
+  .unless({ path: [
+    '/api/user/login',
+    '/api/user/register',
+    '/api/album/new',
+    '/api/track/search',
+    '/api/playlist/search',
+    '/api/album/search',
+    '/api/artist/search',
+  ] }));
 
 apiRouter.use('/album', albumRouter.router);
 apiRouter.use('/playlist', playlistRouter.router);
 apiRouter.use('/user', userRouter.router);
 apiRouter.use('/artist', artistRouter.router);
 apiRouter.use('/feed', feedRouter.router);
+apiRouter.use('/track', trackRouter.router);
 
 app.use('/api', apiRouter);
 

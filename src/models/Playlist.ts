@@ -21,7 +21,6 @@ export async function findById(id: string) {
   }
 
   const playlist = serializer.playlistFromResult(res[0]);
-  playlist.creator = serializer.userFromResult(res[0]);
   playlist.tracks = res.map(serializer.trackFromResult);
 
   return playlist;
@@ -32,6 +31,20 @@ export async function findByCreatedBy(uname: string) {
   const plids = (await db.sql(sql, uname)).map((res) => res.plid);
   const playlists = await Promise.all(plids.map(findById));
   return playlists;
+}
+
+export async function search(keyword: string, offset: number, limit: number) {
+  const sql = `
+  SELECT ${[...serializer.playlistKeys, ...serializer.userKeys].join(',')} FROM t_playlist
+  INNER JOIN t_user USING (uname)
+  WHERE pltitle LIKE ?
+  LIMIT ? OFFSET ?;
+  `;
+  const results = (await db.sql(
+    sql, `%${keyword}%`, limit, offset,
+  ));
+
+  return results.map(serializer.playlistFromResult);
 }
 
 export async function create(uname: string, playlist: Playlist) {

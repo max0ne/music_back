@@ -34,6 +34,7 @@ export const router = express.Router();
 
 router.get('/', getAlbum);
 router.get('/new', getNewAlbums);
+router.get('/search', search);
 
 async function getAlbum(req: Request, res: Response, next: NextFunction) {
   const alid = req.query.id;
@@ -57,4 +58,14 @@ async function getNewAlbums(req: Request, res: Response, next: NextFunction) {
   }
 
   res.status(200).send(albums);
+}
+
+async function search(req: Request, res: Response, next: NextFunction) {
+  const { keyword, limit, offset } = req.query;
+  if (!util.isValidParam(keyword)) {
+    return util.sendErr(res, 'keyword as string required');
+  }
+
+  const playlists = await AlbumDB.search(keyword, parseInt(offset, 10) || 0, parseInt(limit, 10) || config.defaultLimit);
+  return res.status(200).send(playlists);
 }

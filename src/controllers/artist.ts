@@ -24,14 +24,16 @@ import {
 import * as ArtistDB from '../models/Artist';
 import * as FeedDB from '../models/Feed';
 import * as util from '../util';
+import * as config from '../config/config';
 
 export const router = express.Router();
 
-router.post('/:arid/like', like);
-router.post('/:arid/unlike', unlike);
+router.post('/like', like);
+router.post('/unlike', unlike);
+router.get('/search', search);
 
 async function like(req: Request, res: Response, next: NextFunction) {
-  const { arid } = req.params;
+  const { arid } = req.body;
 
   if (!util.isValidParam(arid)) {
     return util.sendErr(res, 'arid required');
@@ -53,8 +55,18 @@ async function like(req: Request, res: Response, next: NextFunction) {
 }
 
 async function unlike(req: Request, res: Response, next: NextFunction) {
-  const { arid } = req.params;
+  const { arid } = req.body;
 
   await ArtistDB.unlike(req.user.uname, arid);
   return util.sendOK(res);
+}
+
+async function search(req: Request, res: Response, next: NextFunction) {
+  const { keyword, limit, offset } = req.query;
+  if (!util.isValidParam(keyword)) {
+    return util.sendErr(res, 'keyword as string required');
+  }
+
+  const artists = await ArtistDB.search(keyword, parseInt(offset, 10) || 0, parseInt(limit, 10) || config.defaultLimit);
+  return res.status(200).send(artists);
 }

@@ -4,6 +4,7 @@ import * as db from './db';
 import { Album, Artist, Feed, Playlist, Track, User } from './Models';
 import * as TrackDB from './Track';
 import * as util from '../util';
+import * as serializer from './serializer';
 
 export async function findById(alid: string, withTracks: boolean) {
   if (withTracks) {
@@ -65,4 +66,17 @@ export async function recentAlbums(offset: number, limit: number) {
   });
 
   return albums;
+}
+
+export async function search(keyword: string, offset: number, limit: number) {
+  const sql = `
+  SELECT ${serializer.albumKeys.join(',')} FROM t_album
+  WHERE altitle LIKE ?
+  LIMIT ? OFFSET ?;
+  `;
+  const results = (await db.sql(
+    sql, `%${keyword}%`, limit, offset,
+  ));
+
+  return results.map(serializer.albumFromResult);
 }

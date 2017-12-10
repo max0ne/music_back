@@ -25,6 +25,10 @@ export const userKeys = ['uname', 'first_name', 'last_name', 'email', 'city'];
 
 export const artistKeys = ['arid', 'arname', 'ardesc'];
 
+export const playlistKeys = ['pltitle', 'created_at', 'uname'];
+
+export const albumKeys = ['alid', 'altitle', 'aldate'];
+
 export const feedKeys = [
   'fdid',
   'uname',
@@ -47,11 +51,17 @@ export function modelFromResult(result: any, keys: string[]) {
 }
 
 export function playlistFromResult(result: any) {
-  return modelFromResult(result, ['plid', 'pltitle', 'uname']) as Playlist;
+  const pl = modelFromResult(result, playlistKeys) as Playlist;
+  pl.creator = userFromResult(result, false);
+  return pl;
+}
+
+export function albumFromResult(result: any) {
+  return modelFromResult(result, albumKeys) as Album;
 }
 
 export function artistFromResult(result: any) {
-  return modelFromResult(result, ['arid', 'arname', 'ardesc']) as Artist;
+  return modelFromResult(result, artistKeys) as Artist;
 }
 
 export function userFromResult(result: any, withPassword?: boolean) {

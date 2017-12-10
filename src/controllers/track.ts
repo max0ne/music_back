@@ -23,12 +23,15 @@ import {
 import * as TrackDB from '../models/Track';
 import * as util from '../util';
 import * as FeedDB from '../models/Feed';
+import * as config from '../config/config';
+import insertRating from './insertRating';
 
 export const router = express.Router();
 
 router.post('/:trid/rate', rate);
 router.post('/:trid/unrate', unrate);
 router.post('/:trid/played', played);
+router.get('/search', search);
 
 async function rate(req: Request, res: Response, next: NextFunction) {
   const { rating } = req.body;
@@ -68,4 +71,14 @@ async function played(req: Request, res: Response, next: NextFunction) {
 
   await TrackDB.addPlayedHistory(req.user.uname, trid);
   return util.sendOK(res);
+}
+
+async function search(req: Request, res: Response, next: NextFunction) {
+  const { keyword, limit, offset } = req.query;
+  if (!util.isValidParam(keyword)) {
+    return util.sendErr(res, 'keyword as string required');
+  }
+
+  const tracks = await TrackDB.search(keyword, parseInt(offset, 10) || 0, parseInt(limit, 10) || config.defaultLimit);
+  return res.status(200).send(tracks);
 }

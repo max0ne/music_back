@@ -66,14 +66,14 @@ export async function getRatingsForTracks(trid: string | string[], uname: string
 export async function search(keyword: string, offset: number, limit: number) {
   const sql = `
   SELECT * FROM t_track
-  WHERE trtitle LIKE "%?%"
+  INNER JOIN t_artist USING (arid)
+  WHERE trtitle LIKE ?
   LIMIT ? OFFSET ?;
   `;
-  const tracks = (await db.sql(
-    sql, keyword, limit, offset,
+  const results = (await db.sql(
+    sql, `%${keyword}%`, limit, offset,
   ));
-
-  return tracks;
+  return results.map(serializer.trackFromResult);
 }
 
 export async function addPlayedHistory(uname: string, trid: string) {

@@ -11,6 +11,20 @@ export async function findById(arid: string) {
   return artist;
 }
 
+export async function search(keyword: string, offset: number, limit: number) {
+  const sql = `
+  SELECT ${serializer.artistKeys.join(', ')} FROM t_artist
+  WHERE arname LIKE ?
+  OR ardesc LIKE ?
+  LIMIT ? OFFSET ?;
+  `;
+  const results = (await db.sql(
+    sql, `%${keyword}%`, `%${keyword}%`, limit, offset,
+  ));
+
+  return results.map(serializer.artistFromResult);
+}
+
 export async function like(uname: string, arid: string) {
   const rated = await db.sql(
     `SELECT * FROM t_like WHERE arid = ? AND uname = ?;`,

@@ -26,12 +26,14 @@ import * as PlaylistDB from '../models/Playlist';
 import * as FeedDb from '../models/Feed';
 import * as util from '../util';
 import insertRating from './insertRating';
+import * as config from '../config/config';
 
 export const router = express.Router();
 
 router.get('/', get);
 router.get('/mine', getMine);
 router.get('/@:uname', getBy);
+router.get('/search', search);
 router.post('/', create);
 router.put('/:plid/changeName', changeName);
 router.put('/:plid/addTrack', addTrack);
@@ -166,6 +168,16 @@ async function getBy(req: Request, res: Response, next: NextFunction) {
   await insertRating(req)(pls);
 
   res.status(200).json(pls);
+}
+
+async function search(req: Request, res: Response, next: NextFunction) {
+  const { keyword, limit, offset } = req.query;
+  if (!util.isValidParam(keyword)) {
+    return util.sendErr(res, 'keyword as string required');
+  }
+
+  const playlists = await PlaylistDB.search(keyword, parseInt(offset, 10) || 0, parseInt(limit, 10) || config.defaultLimit);
+  return res.status(200).send(playlists);
 }
 
 async function del(req: Request, res: Response, next: NextFunction) {
