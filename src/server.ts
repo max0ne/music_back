@@ -25,6 +25,7 @@ dotenv.config();
 import * as albumRouter from './controllers/album';
 import * as playlistRouter from './controllers/playlist';
 import * as userRouter from './controllers/user';
+import * as artistRouter from './controllers/artist';
 
 /**
  * API keys and Passport configuration.
@@ -70,6 +71,7 @@ apiRouter.use(jwt({ secret: util.getEnv('JWT_SECRET', true) }).unless({ path: ['
 apiRouter.use('/album', albumRouter.router);
 apiRouter.use('/playlist', playlistRouter.router);
 apiRouter.use('/user', userRouter.router);
+apiRouter.use('/artist', artistRouter.router);
 
 app.use('/api', apiRouter);
 
