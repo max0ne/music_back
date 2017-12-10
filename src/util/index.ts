@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
 import { Handler, NextFunction, Request, Response } from 'express';
+import * as errorHandler from 'errorhandler';
 
 export function getEnv(key: string, must?: boolean) {
   const val = process.env[key];
@@ -36,8 +37,7 @@ export function catchAsyncError(handler: (req: Request, res: Response, next: Nex
       await handler(req, res, next);
     }
     catch (error) {
-      console.log(error);
-      res.status(500).send(error);
+      errorHandler()(error, req, res, next);
     }
   };
 }
