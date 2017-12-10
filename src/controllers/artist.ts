@@ -4,9 +4,24 @@ import { NextFunction, Request, Response } from 'express';
 import * as express from 'express';
 import * as _ from 'lodash';
 const { check } = require('express-validator/check');
+import {
+  Album,
+  Artist,
+  Feed,
+  Playlist,
+  Track,
+  User,
+  Fdtype,
+  FdvalueLike,
+  FdvalueFollow,
+  FdvalueRate,
+  FdvaluePlaylistCreate,
+  FdvaluePlaylistAddTrack,
+  FdvaluePlaylistDelTrack,
+} from '../models/Models';
 
-import { Album, Artist, Feed, Playlist, Track, User } from '../models/Models';
 import * as ArtistDB from '../models/Artist';
+import * as FeedDB from '../models/Feed';
 import * as util from '../util';
 
 export const router = express.Router();
@@ -27,6 +42,12 @@ async function like(req: Request, res: Response, next: NextFunction) {
   }
 
   await ArtistDB.like(req.user.uname, arid);
+
+  // post like feed
+  await FeedDB.addLikeFeed(req.user.uname, {
+    artist,
+  });
+
   return util.sendOK(res);
 }
 

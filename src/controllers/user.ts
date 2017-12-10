@@ -7,9 +7,23 @@ import * as passport from 'passport';
 // import { LocalStrategyInfo } from 'passport-local';
 const { check } = require('express-validator/check');
 import * as jwt from 'jsonwebtoken';
-
-import { Album, Artist, Feed, Playlist, Track, User } from '../models/Models';
+import {
+  Album,
+  Artist,
+  Feed,
+  Playlist,
+  Track,
+  User,
+  Fdtype,
+  FdvalueLike,
+  FdvalueFollow,
+  FdvalueRate,
+  FdvaluePlaylistCreate,
+  FdvaluePlaylistAddTrack,
+  FdvaluePlaylistDelTrack,
+} from '../models/Models';
 import * as UserDB from '../models/User';
+import * as FeedDB from '../models/Feed';
 import * as util from '../util';
 import { sendErr } from '../util';
 
@@ -119,11 +133,17 @@ async function postFollow(req: Request, res: Response, next: NextFunction) {
   if (!_.isString(to)) {
     return util.sendErr(res, 'uname required');
   }
-  const toUser = UserDB.findByUname(to);
-  if (_.isNil(to)) {
+  const toUser = await UserDB.findByUname(to);
+  if (_.isNil(toUser)) {
     return util.sendErr(res, `user ${to} not found`);
   }
   await UserDB.follow(from, to);
+
+  // post feed
+  await FeedDB.addFollowFeed(req.user.uname, {
+    followee: toUser,
+  });
+
   return util.sendOK(res);
 }
 

@@ -5,8 +5,24 @@ import * as express from 'express';
 import * as _ from 'lodash';
 const { check } = require('express-validator/check');
 
-import { Album, Artist, Feed, Playlist, Track, User } from '../models/Models';
+import {
+  Album,
+  Artist,
+  Feed,
+  Playlist,
+  Track,
+  User,
+  Fdtype,
+  FdvalueLike,
+  FdvalueFollow,
+  FdvalueRate,
+  FdvaluePlaylistCreate,
+  FdvaluePlaylistAddTrack,
+  FdvaluePlaylistDelTrack,
+} from '../models/Models';
+
 import * as PlaylistDB from '../models/Playlist';
+import * as FeedDb from '../models/Feed';
 import * as util from '../util';
 import insertRating from './insertRating';
 
@@ -41,6 +57,10 @@ async function create(req: Request, res: Response, next: NextFunction) {
 
   await insertRating(req)(created);
 
+  await FeedDb.addPlaylistCreateFeed(req.user.uname, {
+    playlist,
+  });
+
   res.status(200).send(created);
 }
 
@@ -72,6 +92,15 @@ async function addTrack(req: Request, res: Response, next: NextFunction) {
     return util.sendErr(res, 'plid & trid required');
   }
 
+  const playlist = await PlaylistDB.findById(plid);
+  if (_.isNil(playlist)) {
+    return util.send404(res, 'playlist');
+  }
+
+  await FeedDb.addPlaylistAddTrackFeed(req.user.uname, {
+    playlist,
+  });
+
   try {
     await PlaylistDB.addTrack(plid, trid);
     util.sendOK(res);
@@ -87,6 +116,15 @@ async function delTrack(req: Request, res: Response, next: NextFunction) {
   if (!_.isString(plid) || !_.isString(trid)) {
     return util.sendErr(res, 'plid & trid required');
   }
+
+  const playlist = await PlaylistDB.findById(plid);
+  if (_.isNil(playlist)) {
+    return util.send404(res, 'playlist');
+  }
+
+  await FeedDb.addPlaylistDelTrackFeed(req.user.uname, {
+    playlist,
+  });
 
   try {
     await PlaylistDB.delTrack(plid, trid);

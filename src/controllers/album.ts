@@ -11,7 +11,22 @@ import * as util from '../util';
 import insertRating from './insertRating';
 
 import * as AlbumDB from '../models/Album';
-import { Album, Artist, Feed, Playlist, Track, User } from '../models/Models';
+import {
+  Album,
+  Artist,
+  Feed,
+  Playlist,
+  Track,
+  User,
+  Fdtype,
+  FdvalueLike,
+  FdvalueFollow,
+  FdvalueRate,
+  FdvaluePlaylistCreate,
+  FdvaluePlaylistAddTrack,
+  FdvaluePlaylistDelTrack,
+} from '../models/Models';
+
 import * as config from '../config/config';
 
 export const router = express.Router();

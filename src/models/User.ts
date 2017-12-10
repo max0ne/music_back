@@ -3,6 +3,16 @@ import * as crypto from 'crypto';
 import * as db from './db';
 import * as _ from 'lodash';
 import { Album, Playlist, Track, User } from './Models';
+import { modelFromResult } from './modelUtil';
+
+export const keys = ['uname', 'first_name', 'last_name', 'email', 'city'];
+
+export function userFromResult(result: any, withPassword?: boolean) {
+  if (withPassword) {
+    keys.push('password');
+  }
+  return modelFromResult(result, keys) as User;
+}
 
 export async function findByUname(uname: string) {
   const user = (await db.sql('SELECT * FROM t_user WHERE uname = ?', uname))[0] as User;

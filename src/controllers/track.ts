@@ -4,10 +4,24 @@ import { NextFunction, Request, Response } from 'express';
 import * as express from 'express';
 import * as _ from 'lodash';
 const { check } = require('express-validator/check');
-
-import { Album, Artist, Feed, Playlist, Track, User } from '../models/Models';
+import {
+  Album,
+  Artist,
+  Feed,
+  Playlist,
+  Track,
+  User,
+  Fdtype,
+  FdvalueLike,
+  FdvalueFollow,
+  FdvalueRate,
+  FdvaluePlaylistCreate,
+  FdvaluePlaylistAddTrack,
+  FdvaluePlaylistDelTrack,
+} from '../models/Models';
 import * as TrackDB from '../models/Track';
 import * as util from '../util';
+import * as FeedDB from '../models/Feed';
 
 export const router = express.Router();
 
@@ -30,6 +44,11 @@ async function rate(req: Request, res: Response, next: NextFunction) {
   if (_.isNil(track)) {
     return util.send404(res, 'track');
   }
+
+  // post feed
+  await FeedDB.addRateFeed(req.user.uname, {
+    track, rating,
+  });
 
   await TrackDB.rateTrack(req.user.uname, trid, parsedRating);
   return util.sendOK(res);

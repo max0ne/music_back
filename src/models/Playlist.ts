@@ -5,14 +5,8 @@ import * as db from './db';
 import { Album, Playlist, Track, User, Artist } from './Models';
 import * as TrackDB from './Track';
 import * as UserDB from './User';
-
-function userFromResult(result: any, withPassword?: boolean) {
-  const keys = ['uname', 'first_name', 'last_name', 'email', 'city'];
-  if (withPassword) {
-    keys.push('password');
-  }
-  return modelFromResult(result, keys) as User;
-}
+import { userFromResult } from './User';
+import { modelFromResult } from './modelUtil';
 
 function playlistFromResult(result: any) {
   return modelFromResult(result, ['plid', 'pltitle', 'uname']) as Playlist;
@@ -26,13 +20,6 @@ function trackFromResult(result: any) {
 
 function artistFromResult(result: any) {
   return modelFromResult(result, ['arid', 'arname', 'ardesc']) as Artist;
-}
-
-function modelFromResult(result: any, keys: string[]) {
-  if (_.isNil(result)) {
-    return undefined;
-  }
-  return _.pick(result, keys);
 }
 
 export async function findById(id: string) {

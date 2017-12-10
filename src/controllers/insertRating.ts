@@ -4,8 +4,22 @@ import { NextFunction, Request, Response } from 'express';
 import * as express from 'express';
 import * as _ from 'lodash';
 const { check } = require('express-validator/check');
+import {
+  Album,
+  Artist,
+  Feed,
+  Playlist,
+  Track,
+  User,
+  Fdtype,
+  FdvalueLike,
+  FdvalueFollow,
+  FdvalueRate,
+  FdvaluePlaylistCreate,
+  FdvaluePlaylistAddTrack,
+  FdvaluePlaylistDelTrack,
+} from '../models/Models';
 
-import { Album, Artist, Feed, Playlist, Track, User } from '../models/Models';
 import * as TrackDB from '../models/Track';
 import * as util from '../util';
 export default (req: Express.Request) => async (whatever: any) => {
@@ -26,6 +40,10 @@ export default (req: Express.Request) => async (whatever: any) => {
 
   const trids = [] as string[];
   findTrackObjects(whatever, (track) => trids.push(track.trid));
+
+  if (trids.length === 0) {
+    return;
+  }
 
   const ratings = await TrackDB.getRatingsForTracks(trids, req.user.uname);
   findTrackObjects(whatever, (track) => track.rating = ratings[track.trid]);
