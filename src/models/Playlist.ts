@@ -5,22 +5,7 @@ import * as db from './db';
 import { Album, Playlist, Track, User, Artist } from './Models';
 import * as TrackDB from './Track';
 import * as UserDB from './User';
-import { userFromResult } from './User';
-import { modelFromResult } from './modelUtil';
-
-function playlistFromResult(result: any) {
-  return modelFromResult(result, ['plid', 'pltitle', 'uname']) as Playlist;
-}
-
-function trackFromResult(result: any) {
-  const track = modelFromResult(result, ['trid', 'trtitle', 'trduration', 'genre', 'arid']) as Track;
-  (track as any).artist = artistFromResult(result);
-  return track;
-}
-
-function artistFromResult(result: any) {
-  return modelFromResult(result, ['arid', 'arname', 'ardesc']) as Artist;
-}
+import * as serializer from './serializer';
 
 export async function findById(id: string) {
   const sql = `
@@ -35,9 +20,9 @@ export async function findById(id: string) {
     return undefined;
   }
 
-  const playlist = playlistFromResult(res[0]);
-  playlist.creator = userFromResult(res[0]);
-  playlist.tracks = res.map(trackFromResult);
+  const playlist = serializer.playlistFromResult(res[0]);
+  playlist.creator = serializer.userFromResult(res[0]);
+  playlist.tracks = res.map(serializer.trackFromResult);
 
   return playlist;
 }

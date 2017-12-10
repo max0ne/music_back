@@ -28,6 +28,7 @@ export const router = express.Router();
 
 router.post('/:trid/rate', rate);
 router.post('/:trid/unrate', unrate);
+router.post('/:trid/played', played);
 
 async function rate(req: Request, res: Response, next: NextFunction) {
   const { rating } = req.body;
@@ -59,5 +60,12 @@ async function unrate(req: Request, res: Response, next: NextFunction) {
   const { trid } = req.params;
 
   await TrackDB.unrateTrack(req.user.uname, trid);
+  return util.sendOK(res);
+}
+
+async function played(req: Request, res: Response, next: NextFunction) {
+  const { trid } = req.params;
+
+  await TrackDB.addPlayedHistory(req.user.uname, trid);
   return util.sendOK(res);
 }

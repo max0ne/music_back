@@ -22,27 +22,7 @@ import {
 
 import * as TrackDB from './Track';
 import * as UserDB from './User';
-import { modelFromResult } from './modelUtil';
-import { userFromResult } from './User';
-
-export const feedKeys = [
-  'fdid',
-  'uname',
-  'created_at',
-  'fdtype',
-  'fdvalue',
-];
-
-export function feedFromResult(result: any) {
-  const feed = modelFromResult(result, feedKeys) as Feed;
-  feed.user = userFromResult(result);
-  try {
-    feed.fdvalue = JSON.parse(result.fdvalue as string);
-  } catch (error) {
-    console.error('unable to parse feed.fdvalue', result);
-  }
-  return feed;
-}
+import * as serializer from './serializer';
 
 async function addFeed(uname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
   const json = JSON.stringify(fdvalue);
@@ -101,12 +81,12 @@ export async function addPlaylistDelTrackFeed(uname: string, fdvalue: FdvaluePla
 
 export async function getFeeds(uname: string, offset: number, limit: number) {
   const sql = `
-    SELECT ${[...feedKeys, ...UserDB.keys ].join(',')}
+    SELECT ${[...serializer.feedKeys, ...serializer.userKeys ].join(',')}
     FROM t_feed
     INNER JOIN t_user USING (uname)
     WHERE uname = ?
     ORDER BY fdid DESC LIMIT ? OFFSET ?;
   `;
   const result = await db.sql(sql, uname, limit, offset);
-  return result.map(feedFromResult);
+  return result.map(serializer.feedFromResult);
 }

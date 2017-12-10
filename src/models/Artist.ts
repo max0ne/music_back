@@ -4,11 +4,10 @@ import * as db from './db';
 import { Album, Playlist, Track, User, Artist } from './Models';
 import * as TrackDB from './Track';
 import * as util from '../util';
-
-export const artistKeys = ['arid', 'arname', 'ardesc' ];
+import * as serializer from './serializer';
 
 export async function findById(arid: string) {
-  const artist = (await db.sql(`SELECT ${artistKeys.join(',')} FROM t_album WHERE alid = ?`, arid))[0] as Artist;
+  const artist = (await db.sql(`SELECT ${serializer.artistKeys.join(',')} FROM t_album WHERE alid = ?`, arid))[0] as Artist;
   return artist;
 }
 

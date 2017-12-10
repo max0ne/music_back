@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import * as config from '../config/config';
 import * as db from './db';
 import { Album, Playlist, Track, User } from './Models';
+import * as serializer from './serializer';
 
 export async function findByTrid(trid: string) {
   const track = (await db.sql('SELECT * FROM t_track WHERE trid = ?', trid))[0] as Track;
@@ -65,13 +66,14 @@ export async function getRatingsForTracks(trid: string | string[], uname: string
 export async function search(keyword: string, offset: number, limit: number) {
   const sql = `
   SELECT * FROM t_track
-  INNER JOIN t_artist
-  WHERE trtitle LIKE "%?%" OR arname LIKE "%?%"
+  WHERE trtitle LIKE "%?%"
   LIMIT ? OFFSET ?;
   `;
   const tracks = (await db.sql(
-    sql, keyword, limit || config.defaultLimit, offset,
+    sql, keyword, limit, offset,
   ));
+
+  return tracks;
 }
 
 export async function addPlayedHistory(uname: string, trid: string) {
