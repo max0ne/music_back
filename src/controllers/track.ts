@@ -69,7 +69,7 @@ async function unrate(req: Request, res: Response, next: NextFunction) {
 }
 
 async function played(req: Request, res: Response, next: NextFunction) {
-  const { trid } = req.params;
+  const { trid } = req.query;
 
   if (!util.isValidParam(trid)) {
     return util.sendErr(res, 'trid required');

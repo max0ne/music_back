@@ -23,6 +23,7 @@ import {
 } from '../models/Models';
 
 import * as PlaylistDB from '../models/Playlist';
+import * as TrackDB from '../models/Track';
 import * as FeedDb from '../models/Feed';
 import * as util from '../util';
 import * as config from '../config/config';
@@ -101,8 +102,14 @@ async function addTrack(req: Request, res: Response, next: NextFunction) {
     return util.sendOK(res);
   }
 
+  const track = await TrackDB.findByTrid(trid);
+  if (_.isNil(track)) {
+    return util.send404(res, 'track');
+  }
+
   await FeedDb.addPlaylistAddTrackFeed(req.user.uname, {
     playlist,
+    track,
   });
 
   console.log(playlist);
@@ -124,8 +131,14 @@ async function delTrack(req: Request, res: Response, next: NextFunction) {
     return util.send404(res, 'playlist');
   }
 
+  const track = await TrackDB.findByTrid(trid);
+  if (_.isNil(track)) {
+    return util.send404(res, 'track');
+  }
+
   await FeedDb.addPlaylistDelTrackFeed(req.user.uname, {
     playlist,
+    track,
   });
 
   try {

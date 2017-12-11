@@ -31,7 +31,6 @@ export const albumKeys = ['alid', 'altitle', 'aldate'];
 
 export const feedKeys = [
   'fdid',
-  'uname',
   'created_at',
   'fdtype',
   'fdvalue',
@@ -79,7 +78,7 @@ export function userFromResult(result: any, withPassword?: boolean) {
 
 export function feedFromResult(result: any) {
   const feed = modelFromResult(result, feedKeys) as Feed;
-  feed.user = userFromResult(result);
+  feed.poster = userFromResult(result);
   try {
     feed.fdvalue = JSON.parse(result.fdvalue as string);
   } catch (error) {

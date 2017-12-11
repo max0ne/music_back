@@ -74,3 +74,7 @@ export async function findLiked(uname: string, arids: string[]) {
 
   return likeds;
 }
+
+export async function relatedArtists(alid: string) {
+
+}

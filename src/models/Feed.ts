@@ -24,31 +24,35 @@ import * as TrackDB from './Track';
 import * as UserDB from './User';
 import * as serializer from './serializer';
 
-async function addFeed(uname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
+async function addFeed(posterUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
   const copiedFdvalue = JSON.parse(JSON.stringify(fdvalue));
-  _.keys(copiedFdvalue).forEach((key) => {
-    if (_.isArray(copiedFdvalue[key])) {
-      delete copiedFdvalue[key];
+  _.values(copiedFdvalue).forEach((val) => {
+    if (_.isObject(val)) {
+      _.keys(val).forEach((key) => {
+        if (_.isArray((val as any)[key])) {
+          delete (val as any)[key];
+        }
+      });
     }
   });
 
   const json = JSON.stringify(copiedFdvalue);
   const sql = `
-    INSERT INTO t_feed (uname, created_at, fdtype, fdvalue)
-    SELECT follower_uname, NOW(), ?, ? FROM t_follow
+    INSERT INTO t_feed (poster_uname, created_at, fdtype, fdvalue, receiver_uname)
+    SELECT ?, NOW(), ?, ?, follower_uname FROM t_follow
     WHERE followee_uname = ?;
   `;
-  const result = await db.sql(sql, fdtype, json, uname);
+  const result = await db.sql(sql, posterUname, fdtype, json, posterUname);
   const fdid = (result as any).insertId;
   return fdid;
 }
 
-async function addFeedToSpecificUser(specificUser: string, fdtype: Fdtype, fdvalue: FdvalueType) {
+async function addFeedToSpecificUser(posterUname: string, receiverUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
   const json = JSON.stringify(fdvalue);
   const sql = `
-    INSERT INTO t_feed (uname, created_at, fdtype, fdvalue) VALUES (?, NOW(), ?, ?);
+    INSERT INTO t_feed (poster_uname, created_at, fdtype, fdvalue, receiver_uname) VALUES (?, NOW(), ?, ?);
   `;
-  const result = await db.sql(sql, specificUser, fdtype, json);
+  const result = await db.sql(sql, posterUname, fdtype, json, receiverUname);
   const fdid = (result as any).insertId;
   return fdid;
 }
@@ -66,8 +70,8 @@ export async function addFollowFeed(uname: string, fdvalue: FdvalueFollow) {
  * insetead of sending to all users followed by `followee`, so this is a rather special one
  * @param followee uname of the user to post this feed to
  */
-export async function addFollowedByFeedToSpecificUser(followee: string, fdvalue: FdvalueFollowedBy) {
-  return addFeedToSpecificUser(followee, Fdtype.FollowedBy, fdvalue);
+export async function addFollowedByFeedToSpecificUser(follower: string, followee: string) {
+  return addFeedToSpecificUser(follower, followee, Fdtype.FollowedBy, {} as any);
 }
 
 export async function addRateFeed(uname: string, fdvalue: FdvalueRate) {
@@ -88,16 +92,19 @@ export async function addPlaylistDelTrackFeed(uname: string, fdvalue: FdvaluePla
 
 export async function getFeeds(uname: string, offset: number, limit: number) {
   const sql = `
-    SELECT ${[...serializer.feedKeys, ...serializer.userKeys ].join(',')}
+    SELECT ${[
+    ...serializer.feedKeys,
+    ...serializer.prefixKeys('poster_user', serializer.userKeys),
+    ].join(',')}
     FROM t_feed
-    INNER JOIN t_user USING (uname)
-    WHERE uname = ?
+    INNER JOIN t_user AS poster_user ON (poster_user.uname = t_feed.poster_uname)
+    WHERE receiver_uname = ?
     ORDER BY fdid DESC LIMIT ? OFFSET ?;
   `;
   const countSql = `
     SELECT count(*) AS total
     FROM t_feed
-    WHERE uname = ?;
+    WHERE receiver_uname = ?;
   `;
   const result = await db.sql(sql, uname, limit, offset);
   const total = (await db.sql(countSql, uname))[0].total;

@@ -57,9 +57,10 @@ export interface FdvalueFollow {
   followee: User;
 }
 
-export interface FdvalueFollowedBy {
-  follower: User;
-}
+// export interface FdvalueFollowedBy {
+//   follower: User;
+// }
+export type FdvalueFollowedBy = undefined;
 
 export interface FdvalueRate {
   track: Track;
@@ -72,18 +73,23 @@ export interface FdvaluePlaylistCreate {
 
 export interface FdvaluePlaylistAddTrack {
   playlist: Playlist;
+  track: Track;
 }
 
 export interface FdvaluePlaylistDelTrack {
   playlist: Playlist;
+  track: Track;
 }
 
 export type FdvalueType = FdvalueLike | FdvalueFollow | FdvalueFollowedBy | FdvalueRate | FdvaluePlaylistCreate | FdvaluePlaylistAddTrack | FdvaluePlaylistDelTrack;
 
 export interface Feed {
   fdid: string;
-  uname: string;
-  user: User;
+  /**
+   * the person that posted this feed
+   */
+  poster_uname: string;
+  poster: User;
   created_at: Date;
   fdtype: Fdtype;
   fdvalue: FdvalueType;
