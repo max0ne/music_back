@@ -38,7 +38,7 @@ export async function update(user: User) {
 
 export async function getFollowing(uname: string) {
   const users = await db.sql(
-    'SELECT uname, first_name, last_name, email, city FROM t_user INNER JOIN t_follow ON (uname = follower_uname) WHERE follower_uname = ?',
+    'SELECT uname, first_name, last_name, email, city FROM t_user INNER JOIN t_follow ON (uname = followee_uname) WHERE follower_uname = ?',
     uname,
   ) as User[];
   return removePassword(users);
@@ -46,7 +46,7 @@ export async function getFollowing(uname: string) {
 
 export async function getFollowedBy(uname: string) {
   const users = await db.sql(
-    'SELECT uname, first_name, last_name, email, city FROM t_user INNER JOIN t_follow ON (uname = followee_uname) WHERE followee_uname = ?',
+    'SELECT uname, first_name, last_name, email, city FROM t_user INNER JOIN t_follow ON (uname = follower_uname) WHERE followee_uname = ?',
     uname,
   ) as User[];
   return removePassword(users);

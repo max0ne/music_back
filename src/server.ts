@@ -29,6 +29,7 @@ import * as artistRouter from './controllers/artist';
 import * as feedRouter from './controllers/feed';
 import * as trackRouter from './controllers/track';
 import * as insertRateStuff from './controllers/insertRateStuff';
+import * as popularRouter from './controllers/popular';
 
 /**
  * API keys and Passport configuration.
@@ -66,6 +67,9 @@ apiRouter.use(jwt({ secret: util.getEnv('JWT_SECRET', true) })
     '/api/playlist/search',
     '/api/album/search',
     '/api/artist/search',
+    '/api/popular/albums',
+    '/api/popular/artists',
+    '/api/popular/tracks',
   ] }));
 
 apiRouter.use(insertRateStuff.insertArtistLikeds() as any);
@@ -77,6 +81,7 @@ apiRouter.use('/user', userRouter.router);
 apiRouter.use('/artist', artistRouter.router);
 apiRouter.use('/feed', feedRouter.router);
 apiRouter.use('/track', trackRouter.router);
+apiRouter.use('/popular', popularRouter.router);
 
 app.use('/api', apiRouter);
 
@@ -84,6 +89,11 @@ app.use('/api', apiRouter);
  * Error Handler. Provides full stack - remove for production
  */
 app.use(errorHandler());
+
+/**
+ * get rid of 304 not modified thing
+ */
+app.disable('etag');
 
 /**
  * Start Express server.

@@ -21,6 +21,7 @@ import {
   FdvaluePlaylistDelTrack,
 } from '../models/Models';
 import * as TrackDB from '../models/Track';
+import * as PopularDB from '../models/Popular';
 import * as util from '../util';
 import * as FeedDB from '../models/Feed';
 import * as config from '../config/config';
@@ -73,7 +74,7 @@ async function played(req: Request, res: Response, next: NextFunction) {
   if (!util.isValidParam(trid)) {
     return util.sendErr(res, 'trid required');
   }
-  await TrackDB.addPlayedHistory(req.user.uname, trid);
+  await PopularDB.addPlayedHistory(req.user.uname, trid);
   return util.sendOK(res);
 }
 

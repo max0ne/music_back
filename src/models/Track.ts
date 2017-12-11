@@ -75,10 +75,3 @@ export async function search(keyword: string, offset: number, limit: number) {
     total,
   };
 }
-
-export async function addPlayedHistory(uname: string, trid: string) {
-  await db.sql(
-    'INSERT INTO t_playhist(uname, trid, played_at) VALUES(?, ?, NOW());',
-    uname, trid,
-  );
-}

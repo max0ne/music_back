@@ -37,6 +37,10 @@ export const feedKeys = [
   'fdvalue',
 ];
 
+export function prefixKeys(prefix: string, keys: string[]) {
+  return keys.map((key) => `${prefix}.${key}`);
+}
+
 export function trackFromResult(result: any) {
   const track = modelFromResult(result, trackKeys) as Track;
   if (track && track.trid) {
