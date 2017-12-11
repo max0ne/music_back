@@ -4,32 +4,46 @@ import * as db from './db';
 import * as _ from 'lodash';
 import { Album, Playlist, Track, User } from './Models';
 import * as serializer from './serializer';
+import * as util from '../util';
 
-export async function findByUname(uname: string) {
+export async function findByUname(uname: string, withPassword?: boolean) {
   const user = (await db.sql('SELECT * FROM t_user WHERE uname = ?', uname))[0] as User;
-  return user;
+  if (user) {
+    user.avatar = gravatar(uname, 100);
+  }
+  if (!withPassword) {
+    return removePassword(user) as User;
+  } else {
+    return user;
+  }
 }
 
 function removePassword(userOrUsers: User | User[]) {
   if (_.isArray(userOrUsers)) {
     (userOrUsers as User[]).forEach((user) => {
       delete user.password;
+      delete (user as any).passsalt;
     });
-  } else {
+  } else if (userOrUsers) {
     delete userOrUsers.password;
+    delete (userOrUsers as any).passsalt;
   }
   return userOrUsers;
 }
 
 export async function register(user: User) {
   const { uname, first_name, last_name, email, city, password } = user;
+
+  const salt = bcrypt.genSaltSync();
+  const passhash = bcrypt.hashSync(password, salt);
+
   await db.sql(
-    'INSERT INTO t_user (uname, first_name, last_name, email, city, password) VALUES (?, ?, ?, ?, ?, ?)',
-    uname, first_name, last_name, email, city, password);
+    'INSERT INTO t_user (uname, first_name, last_name, email, city, password, passsalt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    uname, first_name, last_name, email, city, passhash, salt);
 }
 
 export async function update(user: User) {
-  const { uname, first_name, last_name, email, city, password } = user;
+  const { uname, first_name, last_name, email, city } = user;
   console.log(uname);
   await db.sql(
     'UPDATE t_user SET first_name = ?, last_name = ?, email = ?, city = ? WHERE uname = ?;',
@@ -74,7 +88,7 @@ export async function del(uname: string) {
 }
 
 export function compareUserPassword(user: User, password: string) {
-  return user.password === password;
+  return user.password === bcrypt.hashSync(password, (user as any).passsalt);
 }
 
 /**

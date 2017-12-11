@@ -52,12 +52,12 @@ async function login(req: Request, res: Response, next: NextFunction) {
     return sendErr(res, 'uname & password required');
   }
 
-  const user = await UserDB.findByUname(uname);
+  const user = await UserDB.findByUname(uname, true);
   if (_.isNil(user)) {
     return sendErr(res, `uname ${uname} not found`);
   }
 
-  if (user.password !== password) {
+  if (!UserDB.compareUserPassword(user, password)) {
     return sendErr(res, 'password wrong');
   }
 

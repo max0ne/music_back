@@ -32,11 +32,6 @@ import * as insertRateStuff from './controllers/insertRateStuff';
 import * as popularRouter from './controllers/popular';
 
 /**
- * API keys and Passport configuration.
- */
-// import * as passportConfig from './config/passport';
-
-/**
  * Create Express server.
  */
 const app = express();

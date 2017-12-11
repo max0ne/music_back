@@ -28,6 +28,7 @@ export interface User {
   email: string;
   city: string;
   password: string;
+  avatar: string;
 }
 
 export interface Playlist {
