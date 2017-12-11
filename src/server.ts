@@ -66,6 +66,7 @@ apiRouter.use(jwt({ secret: util.getEnv('JWT_SECRET', true) })
     '/api/track/search',
     '/api/playlist/search',
     '/api/album/search',
+    '/api/album/byArtist',
     '/api/artist/search',
     '/api/popular/albums',
     '/api/popular/artists',

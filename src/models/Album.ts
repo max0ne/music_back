@@ -88,3 +88,15 @@ export async function search(keyword: string, offset: number, limit: number) {
     total,
   };
 }
+
+export async function findByArtist(arid: string) {
+  const sql = `
+  SELECT DISTINCT ${serializer.albumKeys} FROM t_album
+  INNER JOIN t_album_track USING (alid)
+  INNER JOIN t_track USING (trid)
+  WHERE arid = ?;
+  `;
+
+  const results = await db.sql(sql, arid);
+  return results.map(serializer.albumFromResult);
+}

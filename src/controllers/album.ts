@@ -33,6 +33,7 @@ export const router = express.Router();
 router.get('/', util.catchAsyncError(getAlbum));
 router.get('/new',  util.catchAsyncError(getNewAlbums));
 router.get('/search', util.catchAsyncError(search));
+router.get('/byArtist', util.catchAsyncError(getByArtist));
 
 async function getAlbum(req: Request, res: Response, next: NextFunction) {
   const alid = req.query.id;
@@ -48,6 +49,16 @@ async function getNewAlbums(req: Request, res: Response, next: NextFunction) {
   const { offset, limit } = req.query;
   const albums = await AlbumDB.recentAlbums(offset || 0, limit || config.defaultLimit);
   res.status(200).send(albums);
+}
+
+async function getByArtist(req: Request, res: Response, next: NextFunction) {
+  const { arid } = req.query;
+  if (!util.isValidParam(arid)) {
+    return util.sendErr(res, 'arid required');
+  }
+
+  const albums = await AlbumDB.findByArtist(arid);
+  res.json(albums);
 }
 
 async function search(req: Request, res: Response, next: NextFunction) {
