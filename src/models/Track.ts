@@ -59,16 +59,18 @@ export async function search(keyword: string, offset: number, limit: number) {
   SELECT * FROM t_track
   INNER JOIN t_artist USING (arid)
   WHERE trtitle LIKE ?
+  OR genre LIKE ?
   LIMIT ? OFFSET ?;
   `;
   const countSql = `
   SELECT count(*) as total FROM t_track
-  WHERE trtitle LIKE ?;
-  `;
+  WHERE trtitle LIKE ?
+  OR genre LIKE ?
+  ;`;
   const results = (await db.sql(
-    sql, `%${keyword}%`, limit, offset,
+    sql, `%${keyword}%`, `%${keyword}%`, limit, offset,
   ));
-  const total = (await db.sql(countSql, `%${keyword}%`))[0].total;
+  const total = (await db.sql(countSql, `%${keyword}%`, `%${keyword}%`))[0].total;
   const items = results.map(serializer.trackFromResult);
   return {
     items,

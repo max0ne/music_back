@@ -31,7 +31,7 @@ export function sql(query: string, ...params: any[]) {
         Object.keys(query);
         Object.keys(params);
 
-        result && console.log(query, params);
+        console.log(query, params);
         err && console.error(err);
         err ? reject(err) : resolve(result);
         conn && conn.release();
