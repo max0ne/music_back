@@ -97,7 +97,6 @@ async function addTrack(req: Request, res: Response, next: NextFunction) {
     return util.send404(res, 'playlist');
   }
 
-  console.log(playlist.tracks, 'trid');
   if (_.map(playlist.tracks, 'trid').indexOf(trid) !== -1) {
     return util.sendOK(res);
   }
@@ -105,6 +104,8 @@ async function addTrack(req: Request, res: Response, next: NextFunction) {
   await FeedDb.addPlaylistAddTrackFeed(req.user.uname, {
     playlist,
   });
+
+  console.log(playlist);
 
   await PlaylistDB.addTrack(plid, trid);
   util.sendOK(res);

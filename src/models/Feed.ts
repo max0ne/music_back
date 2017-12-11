@@ -27,7 +27,9 @@ import * as serializer from './serializer';
 async function addFeed(uname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
   const copiedFdvalue = JSON.parse(JSON.stringify(fdvalue));
   _.keys(copiedFdvalue).forEach((key) => {
-    delete copiedFdvalue[key];
+    if (_.isArray(copiedFdvalue[key])) {
+      delete copiedFdvalue[key];
+    }
   });
 
   const json = JSON.stringify(copiedFdvalue);

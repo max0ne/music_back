@@ -23,7 +23,6 @@ export async function findById(id: string) {
 
   const playlist = serializer.playlistFromResult(res[0]);
   playlist.tracks = res.map(serializer.trackFromResult).filter((tr) => !_.isNil(tr));
-
   return playlist;
 }
 
