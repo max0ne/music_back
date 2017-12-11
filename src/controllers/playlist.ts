@@ -59,7 +59,7 @@ async function create(req: Request, res: Response, next: NextFunction) {
   const created = await PlaylistDB.create(req.user.uname, playlist);
 
   await FeedDb.addPlaylistCreateFeed(req.user.uname, {
-    playlist,
+    playlist: created,
   });
 
   res.status(200).send(created);
