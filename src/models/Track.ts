@@ -91,3 +91,18 @@ export async function getArtistsForTrids(trids: string[]) {
   const results = await db.sql(sql, ...trids);
   return results.map(serializer.artistFromResult);
 }
+
+export async function recentTracksFromLikedArtist(uname: string) {
+  const sql = `
+  SELECT ${serializer.trackKeys.join(',')}, aldate FROM t_track
+    INNER JOIN t_album_track USING (trid)
+    INNER JOIN t_album USING (alid)
+    INNER JOIN t_like USING (arid)
+  WHERE uname = ?
+  ORDER BY aldate DESC
+  LIMIT 10;
+  `;
+
+  const results = await db.sql(sql, uname);
+  return results.map(serializer.trackFromResult);
+}

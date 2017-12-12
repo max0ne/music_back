@@ -32,6 +32,7 @@ router.post('/rate', util.catchAsyncError(rate));
 router.post('/unrate', util.catchAsyncError(unrate));
 router.post('/played', util.catchAsyncError(played));
 router.get('/search', util.catchAsyncError(search));
+router.get('/suggestions', util.catchAsyncError(suggestions));
 
 async function rate(req: Request, res: Response, next: NextFunction) {
   const { trid, rating } = req.body;
@@ -86,4 +87,9 @@ async function search(req: Request, res: Response, next: NextFunction) {
 
   const tracks = await TrackDB.search(keyword, parseInt(offset, 10) || 0, parseInt(limit, 10) || config.defaultLimit);
   return res.status(200).send(tracks);
+}
+
+async function suggestions(req: Request, res: Response, next: NextFunction) {
+  const tracks = await TrackDB.recentTracksFromLikedArtist(req.user.uname);
+  return res.json(tracks);
 }
