@@ -8,7 +8,7 @@ import * as serializer from './serializer';
 
 export async function findById(arid: string) {
   const artist = (await db.sql(`SELECT ${serializer.artistKeys.join(',')} FROM t_artist WHERE arid = ?`, arid))[0] as Artist;
-  return artist;
+  return serializer.artistFromResult(artist);
 }
 
 export async function search(keyword: string, offset: number, limit: number) {
@@ -76,6 +76,9 @@ export async function findLiked(uname: string, arids: string[]) {
 }
 
 export async function findByIds(arids: string[]) {
+  if (arids.length === 0) {
+    return [];
+  }
   const sql = `SELECT * FROM t_artist WHERE arid in (${arids.map(() => '?')})`;
   const results = await db.sql(sql, ...arids);
   return results.map(serializer.artistFromResult);

@@ -13,12 +13,14 @@ export interface Album {
   altitle: string;
   aldate: Date;
   tracks: Track[];
+  coverUrl: string;
 }
 
 export interface Artist {
   arid: string;
   arname: string;
   ardesc: string;
+  coverUrl: string;
 }
 
 export interface User {
