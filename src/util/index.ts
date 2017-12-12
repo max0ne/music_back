@@ -11,8 +11,8 @@ export function getEnv(key: string, must?: boolean) {
   return val;
 }
 
-export function sendErr(res: any, err: string) {
-  res.status(400).send({ err });
+export function sendErr(res: any, err: string, status?: number) {
+  res.status(status || 400).send({ err });
 }
 
 export function send404(res: any, whatNotFound?: string) {

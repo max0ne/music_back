@@ -13,6 +13,7 @@ import * as lusca from 'lusca';
 import * as passport from 'passport';
 import * as path from 'path';
 import * as morgan from 'morgan';
+import * as _ from 'lodash';
 
 import * as config from './config/config';
 import * as util from './util';
@@ -30,6 +31,8 @@ import * as feedRouter from './controllers/feed';
 import * as trackRouter from './controllers/track';
 import * as insertRateStuff from './controllers/insertRateStuff';
 import * as popularRouter from './controllers/popular';
+
+import * as UserDB from './models/User';
 
 /**
  * Create Express server.
@@ -53,7 +56,10 @@ app.use(lusca.xssProtection(true));
 
 const apiRouter = express.Router();
 
-apiRouter.use(jwt({ secret: util.getEnv('JWT_SECRET', true) })
+apiRouter.use(
+  jwt({
+    secret: util.getEnv('JWT_SECRET', true),
+  })
   .unless({ path: [
     '/api/user/login',
     '/api/user/register',
@@ -70,6 +76,23 @@ apiRouter.use(jwt({ secret: util.getEnv('JWT_SECRET', true) })
     '/api/artist/albums',
     '/api/artist/similar',
   ] }));
+
+/**
+ * inject user
+ */
+apiRouter.use(async (req, res, next) => {
+  const uname = req.user && req.user.uname;
+  if (!uname) {
+    return next();
+  }
+  const user = await UserDB.findByUname(uname);
+  if (_.isNil(user)) {
+    return util.sendErr(res, 'token expired', 401);
+  }
+
+  req.user = _.assign({}, req.user, user);
+  next();
+});
 
 apiRouter.use(insertRateStuff.insertArtistLikeds() as any);
 apiRouter.use(insertRateStuff.insertTrackRates() as any);
