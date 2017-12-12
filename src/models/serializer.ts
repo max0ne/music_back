@@ -1,5 +1,6 @@
 import * as bcrypt from 'bcrypt-nodejs';
 import * as _ from 'lodash';
+import * as faker from 'faker';
 
 import {
   Album,
@@ -64,11 +65,15 @@ export function playlistFromResult(result: any) {
 }
 
 export function albumFromResult(result: any) {
-  return modelFromResult(result, albumKeys) as Album;
+  const album = modelFromResult(result, albumKeys) as Album;
+  album.coverUrl = faker.image.cats(500, 500);
+  return album;
 }
 
 export function artistFromResult(result: any) {
-  return modelFromResult(result, artistKeys) as Artist;
+  const artist = modelFromResult(result, artistKeys) as Artist;
+  artist.coverUrl = faker.image.people(500, 500);
+  return artist;
 }
 
 export function userFromResult(result: any, withPassword?: boolean) {
