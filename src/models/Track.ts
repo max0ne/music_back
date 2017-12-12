@@ -2,7 +2,7 @@ import * as bcrypt from 'bcrypt-nodejs';
 import * as _ from 'lodash';
 import * as config from '../config/config';
 import * as db from './db';
-import { Album, Playlist, Track, User } from './Models';
+import { Album, Playlist, Track, User, Artist } from './Models';
 import * as serializer from './serializer';
 
 export async function findByTrid(trid: string) {
@@ -76,4 +76,18 @@ export async function search(keyword: string, offset: number, limit: number) {
     items,
     total,
   };
+}
+
+export async function getArtistsForTrids(trids: string[]) {
+  if (trids.length === 0) {
+    return [] as Artist[];
+  }
+
+  const sql = `
+  SELECT DISTINCT ${serializer.artistKeys} FROM t_artist
+  INNER JOIN t_track USING (arid)
+  WHERE trid IN (${_.map(trids, () => '?').join(',')});
+  `;
+  const results = await db.sql(sql, ...trids);
+  return results.map(serializer.artistFromResult);
 }

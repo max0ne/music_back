@@ -40,20 +40,16 @@ router.put('/:plid/addTrack', util.catchAsyncError(addTrack));
 router.put('/:plid/delTrack', util.catchAsyncError(delTrack));
 router.delete('/:plid', util.catchAsyncError(del));
 
-const validateTracks = (tracks: any[]) =>
-  _.isArray(tracks) &&
-  (tracks as string[]).every((id) =>
-    _.isString(id) || _.isNumber(id));
-
 async function create(req: Request, res: Response, next: NextFunction) {
-  const { pltitle,  tracks } = req.body;
+  const { pltitle } = req.body;
 
-  if (!_.isString(pltitle) || !validateTracks(tracks)) {
-    return util.sendErr(res, 'pltitle, tracks required');
+  if (!_.isString(pltitle)) {
+    return util.sendErr(res, 'pltitle required');
   }
 
   const playlist = {
-    pltitle, tracks,
+    pltitle,
+    tracks: [] as Track[],
   } as Playlist;
 
   const created = await PlaylistDB.create(req.user.uname, playlist);
@@ -111,6 +107,7 @@ async function addTrack(req: Request, res: Response, next: NextFunction) {
     playlist,
     track,
   });
+  await FeedDb.addPlaylistAddTrackFeedToArtistLikers(req.user.uname, track, playlist);
 
   console.log(playlist);
 

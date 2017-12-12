@@ -5,6 +5,7 @@ import { Album, Artist, Feed, Playlist, Track, User } from './Models';
 import * as TrackDB from './Track';
 import * as util from '../util';
 import * as serializer from './serializer';
+import { albumKeys } from './serializer';
 
 export async function findById(alid: string, withTracks: boolean) {
   if (withTracks) {
@@ -97,6 +98,19 @@ export async function findByArtist(arid: string) {
   WHERE arid = ?;
   `;
 
+  const results = await db.sql(sql, arid);
+  return results.map(serializer.albumFromResult);
+}
+
+export async function artistAlbums(arid: string) {
+  const sql = `
+  SELECT DISTINCT ${serializer.albumKeys.join(', ')}
+  FROM t_album
+  INNER JOIN t_album_track USING (alid)
+  INNER JOIN t_track USING (trid)
+  WHERE arid = ?
+  ORDER BY aldate DESC;
+  `;
   const results = await db.sql(sql, arid);
   return results.map(serializer.albumFromResult);
 }

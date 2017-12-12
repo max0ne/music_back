@@ -66,6 +66,9 @@ apiRouter.use(jwt({ secret: util.getEnv('JWT_SECRET', true) })
     '/api/popular/albums',
     '/api/popular/artists',
     '/api/popular/tracks',
+    '/api/popular/artistTracks',
+    '/api/artist/albums',
+    '/api/artist/similar',
   ] }));
 
 apiRouter.use(insertRateStuff.insertArtistLikeds() as any);

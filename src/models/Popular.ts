@@ -69,3 +69,19 @@ export async function addPlayedHistory(uname: string, trid: string) {
     uname, trid,
   );
 }
+
+export async function popularArtistTracks(arid: string) {
+  const sql = `
+  SELECT ${serializer.trackKeys.join(', ')}, sum(CASE WHEN uname IS NULL THEN 0 ELSE 1 END) AS playCount
+  FROM t_track
+    LEFT JOIN t_playhist
+    USING (trid)
+  WHERE arid = ?
+  GROUP BY trid
+  ORDER BY playCount DESC
+  LIMIT 10;
+  `;
+  const results = await db.sql(sql, arid);
+  const tracks = results.map(serializer.trackFromResult);
+  return tracks;
+}

@@ -18,13 +18,14 @@ import {
   FdvaluePlaylistAddTrack,
   FdvalueType,
   FdvaluePlaylistDelTrack,
+  FdvaluePlaylistOfLikedArtistAddTrack,
 } from './Models';
 
 import * as TrackDB from './Track';
 import * as UserDB from './User';
 import * as serializer from './serializer';
 
-async function addFeed(posterUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
+function stringifyFdvalue(fdvalue: FdvalueType) {
   const copiedFdvalue = JSON.parse(JSON.stringify(fdvalue));
   _.values(copiedFdvalue).forEach((val) => {
     if (_.isObject(val)) {
@@ -35,22 +36,22 @@ async function addFeed(posterUname: string, fdtype: Fdtype, fdvalue: FdvalueType
       });
     }
   });
+  return JSON.stringify(copiedFdvalue);
+}
 
-  const json = JSON.stringify(copiedFdvalue);
+async function addFeed(posterUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
   const sql = `
     INSERT INTO t_feed (poster_uname, created_at, fdtype, fdvalue, receiver_uname)
     SELECT ?, NOW(), ?, ?, follower_uname FROM t_follow
     WHERE followee_uname = ?;
   `;
-  const result = await db.sql(sql, posterUname, fdtype, json, posterUname);
-  const fdid = (result as any).insertId;
-  return fdid;
+  await db.sql(sql, posterUname, fdtype, stringifyFdvalue(fdvalue), posterUname);
 }
 
 async function addFeedToSpecificUser(posterUname: string, receiverUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
   const json = JSON.stringify(fdvalue);
   const sql = `
-    INSERT INTO t_feed (poster_uname, created_at, fdtype, fdvalue, receiver_uname) VALUES (?, NOW(), ?, ?);
+    INSERT INTO t_feed (poster_uname, created_at, fdtype, fdvalue, receiver_uname) VALUES (?, NOW(), ?, ?, ?);
   `;
   const result = await db.sql(sql, posterUname, fdtype, json, receiverUname);
   const fdid = (result as any).insertId;
@@ -88,6 +89,26 @@ export async function addPlaylistAddTrackFeed(uname: string, fdvalue: FdvaluePla
 
 export async function addPlaylistDelTrackFeed(uname: string, fdvalue: FdvaluePlaylistDelTrack) {
   return addFeed(uname, Fdtype.PlaylistDelTrack, fdvalue);
+}
+
+export async function addPlaylistAddTrackFeedToArtistLikers(posterUname: string, track: Track, playlist: Playlist) {
+  // need artist info for those tracks cuz need them in `fdvalue`
+  const [artist] = await TrackDB.getArtistsForTrids([track.trid]);
+  const sql = `
+  INSERT INTO t_feed (poster_uname, created_at, fdtype, fdvalue, receiver_uname)
+    SELECT ?, now(), ?, ?, uname
+    FROM t_like
+      INNER JOIN (
+        SELECT arid FROM t_track WHERE trid = ?
+      ) AS _
+      USING (arid);
+  `;
+  const fdvalue: FdvaluePlaylistOfLikedArtistAddTrack = {
+    artist,
+    playlist,
+    track,
+  };
+  await db.sql(sql, posterUname, Fdtype.PlaylistOfLikedArtistAddTrack, stringifyFdvalue(fdvalue), track.trid);
 }
 
 export async function getFeeds(uname: string, offset: number, limit: number) {

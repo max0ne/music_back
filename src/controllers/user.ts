@@ -138,18 +138,22 @@ async function postFollow(req: Request, res: Response, next: NextFunction) {
   if (_.isNil(toUser)) {
     return util.sendErr(res, `user ${to} not found`);
   }
-  await UserDB.follow(from, to);
 
-  // @todo: this should actually be from request user context middleware
-  const fromUser = await UserDB.findByUname(from);
+  try {
+    await UserDB.follow(from, to);
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+
+    } else {
+      throw error;
+    }
+  }
 
   // post feed
   await FeedDB.addFollowFeed(from, {
     followee: toUser,
   });
-  await FeedDB.addFollowedByFeedToSpecificUser(to, {
-    follower: fromUser,
-  });
+  await FeedDB.addFollowedByFeedToSpecificUser(from, to);
 
   return util.sendOK(res);
 }

@@ -47,9 +47,7 @@ const findObjectsWithKey = (key: string) => (obj: any, cb: (found: any) => void)
 const jsonAsync = (handler: (...params: any[]) => Promise<any>) => {
   return mung.jsonAsync(async (body, req, res) => {
     try {
-      const newBody = await handler(body, req, res);
-      console.log('newBody', JSON.stringify(newBody));
-      return newBody;
+      return await handler(body, req, res);
     } catch (error) {
       util.handleError(error, req, res, () => { });
     }

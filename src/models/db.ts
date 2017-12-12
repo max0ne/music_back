@@ -16,7 +16,6 @@ function setupPool() {
 }
 
 export function sql(query: string, ...params: any[]) {
-
   if (_.isNil(pool)) {
     setupPool();
   }
@@ -31,19 +30,14 @@ export function sql(query: string, ...params: any[]) {
         Object.keys(query);
         Object.keys(params);
 
-        console.log(query, params);
         err && console.error(err);
         err ? reject(err) : resolve(result);
         conn && conn.release();
       };
 
-      console.debug(query, params);
-
-      if (params && params.length > 0) {
-        conn.query(query, params, cb);
-      } else {
-        conn.query(query, cb);
-      }
+      params = params || [];
+      const sqlQuery = conn.query(query, params, cb);
+      console.log(sqlQuery.sql);
     });
   }) as Promise<any[]>;
 }

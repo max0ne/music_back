@@ -33,6 +33,7 @@ export const router = express.Router();
 router.get('/albums', util.catchAsyncError(getAlbums));
 router.get('/artists', util.catchAsyncError(getArtists));
 router.get('/tracks', util.catchAsyncError(getTracks));
+router.get('/artistTracks', util.catchAsyncError(getArtistTracks));
 
 async function getAlbums(req: Request, res: Response, next: NextFunction) {
   const items = await PopularDB.popularAlbums();
@@ -46,5 +47,14 @@ async function getArtists(req: Request, res: Response, next: NextFunction) {
 
 async function getTracks(req: Request, res: Response, next: NextFunction) {
   const items = await PopularDB.popularTracks();
+  res.status(200).send(items);
+}
+
+async function getArtistTracks(req: Request, res: Response, next: NextFunction) {
+  const { arid } = req.query;
+  if (!util.isValidParam(arid)) {
+    return util.sendErr(res, 'arid required');
+  }
+  const items = await PopularDB.popularArtistTracks(arid);
   res.status(200).send(items);
 }

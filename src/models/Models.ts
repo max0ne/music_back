@@ -47,6 +47,7 @@ export enum Fdtype {
   PlaylistCreate = 5,
   PlaylistAddTrack = 6,
   PlaylistDelTrack = 7,
+  PlaylistOfLikedArtistAddTrack = 8,
 }
 
 export interface FdvalueLike {
@@ -81,7 +82,22 @@ export interface FdvaluePlaylistDelTrack {
   track: Track;
 }
 
-export type FdvalueType = FdvalueLike | FdvalueFollow | FdvalueFollowedBy | FdvalueRate | FdvaluePlaylistCreate | FdvaluePlaylistAddTrack | FdvaluePlaylistDelTrack;
+export interface FdvaluePlaylistOfLikedArtistAddTrack {
+  playlist: Playlist;
+  artist: Artist;
+  track: Track;
+}
+
+export type FdvalueType = (
+  FdvalueLike
+  | FdvalueFollow
+  | FdvalueFollowedBy
+  | FdvalueRate
+  | FdvaluePlaylistCreate
+  | FdvaluePlaylistAddTrack
+  | FdvaluePlaylistDelTrack
+  | FdvaluePlaylistOfLikedArtistAddTrack
+);
 
 export interface Feed {
   fdid: string;

@@ -75,6 +75,46 @@ export async function findLiked(uname: string, arids: string[]) {
   return likeds;
 }
 
-export async function relatedArtists(alid: string) {
+export async function findByIds(arids: string[]) {
+  const sql = `SELECT * FROM t_artist WHERE arid in (${arids.map(() => '?')})`;
+  const results = await db.sql(sql, ...arids);
+  return results.map(serializer.artistFromResult);
+}
 
+export async function similarArtists(arid: string) {
+  const sql = `
+  SELECT
+    arid1,
+    arid2,
+    commonFanCount,
+    sum(fanCount) AS undistinctTotalFanCount,
+    sum(fanCount) - commonFanCount AS totalFanCount,
+    commonFanCount / (sum(fanCount) - commonFanCount) AS commonFansToTotalFansRatio
+  FROM
+    (
+      SELECT
+        l1.arid  AS arid1,
+        l2.arid  AS arid2,
+        count(*) AS commonFanCount
+      FROM t_like AS l1, t_like AS l2
+      WHERE l1.arid < l2.arid
+            AND l1.uname = l2.uname
+      GROUP BY arid1, arid2
+    ) AS commonFans
+  JOIN (
+        SELECT arid, count(*) AS fanCount
+        FROM t_like
+        GROUP BY arid) AS f1
+  ON commonFans.arid1 = f1.arid OR commonFans.arid2 = f1.arid
+  WHERE arid1 = ?
+  OR arid2 = ?
+  GROUP BY arid1, arid2
+  HAVING commonFansToTotalFansRatio >= 0.5
+  ORDER BY commonFansToTotalFansRatio
+  LIMIT 5;`;
+
+  const results = await db.sql(sql, arid, arid);
+  let arids = _.concat(_.map(results, 'arid1'), _.map(results, 'arid2'));
+  arids = arids.filter((ar) => ar !== arid);
+  return findByIds(arids);
 }

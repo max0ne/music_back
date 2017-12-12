@@ -23,6 +23,7 @@ import {
 
 import * as ArtistDB from '../models/Artist';
 import * as FeedDB from '../models/Feed';
+import * as AlbumDB from '../models/Album';
 import * as util from '../util';
 import * as config from '../config/config';
 
@@ -32,6 +33,8 @@ router.post('/like', util.catchAsyncError(like));
 router.post('/unlike', util.catchAsyncError(unlike));
 router.get('/search', util.catchAsyncError(search));
 router.get('/', util.catchAsyncError(get));
+router.get('/albums', util.catchAsyncError(getAlbums));
+router.get('/similar', util.catchAsyncError(similarArtists));
 
 async function get(req: Request, res: Response, next: NextFunction) {
   const { arid } = req.query;
@@ -84,5 +87,25 @@ async function search(req: Request, res: Response, next: NextFunction) {
   }
 
   const artists = await ArtistDB.search(keyword, parseInt(offset, 10) || 0, parseInt(limit, 10) || config.defaultLimit);
+  return res.status(200).send(artists);
+}
+
+async function getAlbums(req: Request, res: Response, next: NextFunction) {
+  const { arid } = req.query;
+  if (!util.isValidParam(arid)) {
+    return util.sendErr(res, 'arid required');
+  }
+
+  const albums = await AlbumDB.artistAlbums(arid);
+  return res.status(200).send(albums);
+}
+
+async function similarArtists(req: Request, res: Response, next: NextFunction) {
+  const { arid } = req.query;
+  if (!util.isValidParam(arid)) {
+    return util.sendErr(res, 'arid required');
+  }
+
+  const artists = await ArtistDB.similarArtists(arid);
   return res.status(200).send(artists);
 }
