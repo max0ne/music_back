@@ -20,6 +20,10 @@ import {
   FdvaluePlaylistDelTrack,
 } from './Models';
 
+const fakeImage = (key: string) => {
+  return (faker.image as any).imageUrl(500, 500, undefined, true);
+};
+
 export const trackKeys = ['trid', 'trtitle', 'trduration', 'genre'];
 
 export const userKeys = ['uname', 'first_name', 'last_name', 'email', 'city'];
@@ -66,13 +70,13 @@ export function playlistFromResult(result: any) {
 
 export function albumFromResult(result: any) {
   const album = modelFromResult(result, albumKeys) as Album;
-  album.coverUrl = faker.image.cats(500, 500);
+  album.coverUrl = fakeImage(album.alid);
   return album;
 }
 
 export function artistFromResult(result: any) {
   const artist = modelFromResult(result, artistKeys) as Artist;
-  artist.coverUrl = faker.image.people(500, 500);
+  artist.coverUrl = fakeImage(artist.arid);
   return artist;
 }
 

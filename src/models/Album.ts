@@ -30,8 +30,8 @@ export async function findById(alid: string, withTracks: boolean) {
     (album as any).tracks = tracks;
     return album;
   } else {
-    const album = (await db.sql('SELECT * FROM t_album WHERE alid = ?', alid))[0] as Album;
-    return album;
+    const results = (await db.sql('SELECT * FROM t_album WHERE alid = ?', alid));
+    return serializer.albumFromResult(results[0]);
   }
 }
 
