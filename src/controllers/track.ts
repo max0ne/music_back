@@ -56,7 +56,7 @@ async function rate(req: Request, res: Response, next: NextFunction) {
   });
 
   await TrackDB.rateTrack(req.user.uname, trid, parsedRating);
-  return util.sendOK(res);
+  return res.json(track);
 }
 
 async function unrate(req: Request, res: Response, next: NextFunction) {
@@ -65,8 +65,14 @@ async function unrate(req: Request, res: Response, next: NextFunction) {
   if (!util.isValidParam(trid)) {
     return util.sendErr(res, 'trid required');
   }
+
+  const track = await TrackDB.findByTrid(trid);
+  if (_.isNil(track)) {
+    return util.send404(res, 'track');
+  }
+
   await TrackDB.unrateTrack(req.user.uname, trid);
-  return util.sendOK(res);
+  return res.json(track);
 }
 
 async function played(req: Request, res: Response, next: NextFunction) {
