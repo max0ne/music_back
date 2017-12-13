@@ -54,6 +54,23 @@ export async function getRatingsForTracks(uname: string, trid: string[]) {
   return ratings;
 }
 
+export async function getCommunityRatingForTracks(trids: string[]) {
+  const ratings = {} as { [trid: string]: number };
+  if (!trids.length) {
+    return ratings;
+  }
+  const sql = `
+  SELECT trid, avg(rating) AS rating FROM t_rating
+    WHERE trid IN (${trids.map(() => '?').join(', ')})
+  GROUP BY trid;`;
+  const results = await db.sql(sql, ...trids);
+  results.forEach((res) => {
+    const { trid, rating } = res;
+    ratings[trid] = rating;
+  });
+  return ratings;
+}
+
 export async function search(keyword: string, offset: number, limit: number) {
   const sql = `
   SELECT * FROM t_track

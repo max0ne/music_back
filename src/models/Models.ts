@@ -6,6 +6,7 @@ export interface Track {
   genre: string;
   arid: string;
   rating: number;
+  communityRating: number;
 }
 
 export interface Album {

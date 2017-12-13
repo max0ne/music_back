@@ -63,6 +63,11 @@ apiRouter.use(
   .unless({ path: [
     '/api/user/login',
     '/api/user/register',
+  ] }));
+
+apiRouter.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const path = req.baseUrl + req.path;
+  const ignored = [
     '/api/album/new',
     '/api/track/search',
     '/api/playlist/search',
@@ -75,7 +80,13 @@ apiRouter.use(
     '/api/popular/artistTracks',
     '/api/artist/albums',
     '/api/artist/similar',
-  ] }));
+  ].indexOf(path) !== -1;
+  if (!_.isNil(err) && !ignored) {
+    next(err);
+  } else {
+    next();
+  }
+});
 
 /**
  * inject user

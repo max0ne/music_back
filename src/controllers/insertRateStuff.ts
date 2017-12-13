@@ -76,9 +76,17 @@ export function insertTrackRates() {
 
     const ids = [] as string[];
     findObjectsWithKey('trid')(body, (track) => ids.push(track.trid));
-    console.log(ids);
-    const ratings = await TrackDB.getRatingsForTracks(req.user.uname, ids);
-    findObjectsWithKey('trid')(body, (track) => track.ratings = ratings[track.trid]);
+    const [userRatings, communityRatings] = await Promise.all([
+      TrackDB.getRatingsForTracks(req.user.uname, ids),
+      TrackDB.getCommunityRatingForTracks(ids),
+    ]);
+    // tslint:disable-next-line:no-null-keyword
+    findObjectsWithKey('trid')(body, (track) => {
+    // tslint:disable-next-line:no-null-keyword
+      track.userRating = userRatings[track.trid] || null;
+    // tslint:disable-next-line:no-null-keyword
+      track.communityRating = communityRatings[track.trid] || null;
+    });
     return body;
   });
 }
