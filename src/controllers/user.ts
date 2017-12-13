@@ -94,6 +94,13 @@ async function register(req: Request, res: Response, next: NextFunction) {
     return sendErr(res, `${emptyFields.join(', ')} required`);
   }
 
+  if (!/^[a-zA-Z0-9]+$/.test(uname)) {
+    return util.sendErr(res, 'uname must be alpha numerical');
+  }
+  if (!/^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+$/.test(email)) {
+    return util.sendErr(res, 'email not validate');
+  }
+
   const existsUser = await UserDB.findByUname(uname);
   if (!_.isNil(existsUser)) {
     return util.sendErr(res, `uname ${uname} already registered`);

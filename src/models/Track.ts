@@ -17,7 +17,7 @@ export async function rateTrack(uname: string, trid: string, rate: number) {
   );
   if (rated.length > 0) {
     await db.sql(
-      `UPDATE t_rating SET rating = ?, SET rated_at = NOW() WHERE uname = ? AND trid = ?;`,
+      `UPDATE t_rating SET rating = ?, rated_at = NOW() WHERE uname = ? AND trid = ?;`,
       rate, uname, trid,
     );
   } else {

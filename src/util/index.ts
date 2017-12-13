@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import { Handler, NextFunction, Request, Response } from 'express';
 import * as errorHandler from 'errorhandler';
+import * as mung from 'express-mung';
 
 export function getEnv(key: string, must?: boolean) {
   const val = process.env[key];
@@ -46,3 +47,32 @@ export function handleError(error: Error, req: Request, res: Response, next: Nex
   console.error(error);
   errorHandler()(error, req, res, next);
 }
+
+export const findObjectsWithKey = (key: string) => (obj: any, cb: (found: any) => void) => {
+  const findIt = (obj: any, cb: (found: any) => void) => {
+    if (_.isNil(obj)) {
+      return;
+    } else if (_.isString(obj) || _.isNumber(obj)) {
+      return;
+    } else if (_.isArray(obj)) {
+      obj.forEach((obj) => findIt(obj, cb));
+    } else {
+      if (_.has(obj, key)) {
+        cb(obj);
+      } else {
+        _.values(obj).forEach((obj) => findIt(obj, cb));
+      }
+    }
+  };
+  findIt(obj, cb);
+};
+
+export const mungJsonAsync = (handler: (...params: any[]) => Promise<any>) => {
+  return mung.jsonAsync(async (body, req, res) => {
+    try {
+      return await handler(body, req, res);
+    } catch (error) {
+      handleError(error, req, res, () => { });
+    }
+  });
+};
