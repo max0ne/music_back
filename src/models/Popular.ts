@@ -41,7 +41,6 @@ export async function popularTracks() {
   `;
 
   const result = await db.sql(sql);
-  console.log(result);
   return result.map(serializer.trackFromResult);
 }
 

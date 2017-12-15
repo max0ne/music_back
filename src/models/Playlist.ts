@@ -55,27 +55,30 @@ export async function search(keyword: string, offset: number, limit: number) {
 }
 
 export async function create(uname: string, playlist: Playlist) {
-  const trids = playlist.tracks.map((tr) => {
-    return (
-      _.isString(tr) ? tr :
-      _.isNumber(tr) ? tr :
-      _.isString(tr.trid) || _.isNumber(tr.trid) ? tr.trid : undefined
+  return db.inTransaction(async (db) => {
+    const trids = playlist.tracks.map((tr) => {
+      return (
+        _.isString(tr) ? tr :
+        _.isNumber(tr) ? tr :
+        _.isString(tr.trid) || _.isNumber(tr.trid) ?
+        tr.trid : undefined
+      );
+    }).filter((tr) => !_.isNil(tr));
+
+    const result = await db.sql(
+      `INSERT INTO t_playlist (pltitle, created_at, uname) VALUES (?, NOW(), ?)`,
+      playlist.pltitle, uname,
     );
-  }).filter((tr) => !_.isNil(tr));
 
-  const result = await db.sql(
-    `INSERT INTO t_playlist (pltitle, created_at, uname) VALUES (?, NOW(), ?)`,
-    playlist.pltitle, uname,
-  );
+    const plid = (result as any).insertId;
 
-  const plid = (result as any).insertId;
+    await Promise.all(trids.map((trid, idx) =>
+      db.sql(`INSERT INTO t_playlist_track (plid, trid, seq) VALUES (?, ?, ?);`, plid, trid, idx),
+    ));
 
-  await Promise.all(trids.map((trid, idx) =>
-    db.sql(`INSERT INTO t_playlist_track (plid, trid, seq) VALUES (?, ?, ?);`, plid, trid, idx),
-  ));
-
-  const inserted = await (findById(plid));
-  return inserted;
+    const inserted = await(findById(plid));
+    return inserted;
+  });
 }
 
 export async function changeName(plid: string, pltitle: string) {
