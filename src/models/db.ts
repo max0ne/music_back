@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import * as mysql from 'mysql';
 import * as util from '../util';
+import { reject } from 'bluebird';
 
 let pool: mysql.Pool | undefined;
 
@@ -40,4 +41,53 @@ export function sql(query: string, ...params: any[]) {
       console.log(sqlQuery.sql);
     });
   }) as Promise<any[]>;
+}
+
+interface TransactionDB {
+  sql: (query: string, ...params: any[]) => Promise<any[]>;
+}
+
+function TransactionDB(connection: mysql.PoolConnection): TransactionDB {
+  return {
+    sql: (query: string, ...params: any[]) => new Promise((resolve, reject) => {
+      const cb = (err: any, result: any) => {
+        Object.keys(query);
+        Object.keys(params);
+
+        err && console.error(err);
+        err ? reject(err) : resolve(result);
+      };
+
+      params = params || [];
+      const sqlQuery = connection.query(query, params, cb);
+      console.log(sqlQuery.sql);
+    }),
+  };
+}
+
+export function inTransaction<T>(task: (db: TransactionDB) => Promise<T>) {
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, conn) => {
+      if (err || !conn) {
+        throw (err || new Error('cannot get mysql connection'));
+      } else {
+        conn.beginTransaction(async () => {
+          try {
+            const result = await task(TransactionDB(conn));
+            conn.commit();
+            resolve(result);
+            return result;
+          } catch (error) {
+            conn.rollback();
+          }
+        });
+      }
+    });
+  }) as Promise<T>;
+}
+
+async function hah() {
+  return await inTransaction(async (db) => {
+    return 10;
+  });
 }

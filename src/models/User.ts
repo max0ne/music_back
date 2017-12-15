@@ -12,20 +12,20 @@ export async function findByUname(uname: string, withPassword?: boolean) {
     user.avatar = gravatar(uname, 100);
   }
   if (!withPassword) {
-    return removePassword(user) as User;
+    return removePassword(user);
   } else {
     return user;
   }
 }
 
-function removePassword(userOrUsers: User | User[]) {
+function removePassword<T>(userOrUsers: T): T {
   if (_.isArray(userOrUsers)) {
-    (userOrUsers as User[]).forEach((user) => {
+    (userOrUsers as any as User[]).forEach((user) => {
       delete user.password;
       delete (user as any).passsalt;
     });
   } else if (userOrUsers) {
-    delete userOrUsers.password;
+    delete (userOrUsers as any).password;
     delete (userOrUsers as any).passsalt;
   }
   return userOrUsers;

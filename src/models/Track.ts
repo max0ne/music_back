@@ -81,6 +81,7 @@ export async function search(keyword: string, offset: number, limit: number) {
   `;
   const countSql = `
   SELECT count(*) as total FROM t_track
+  INNER JOIN t_artist USING (arid)
   WHERE trtitle LIKE ?
   OR genre LIKE ?
   ;`;
