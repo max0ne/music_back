@@ -5,6 +5,8 @@ import { reject } from 'bluebird';
 
 let pool: mysql.Pool | undefined;
 
+type SqlParamTypes = string | number | null | undefined;
+
 function setupPool() {
   pool = mysql.createPool({
     host: util.getEnv('DB_HOST', true),
@@ -16,7 +18,7 @@ function setupPool() {
   });
 }
 
-export function sql(query: string, ...params: any[]) {
+export function sql(query: string, ...params: SqlParamTypes[]) {
   if (_.isNil(pool)) {
     setupPool();
   }
@@ -44,7 +46,7 @@ export function sql(query: string, ...params: any[]) {
 }
 
 export interface TransactionDB {
-  sql: (query: string, ...params: any[]) => Promise<any[]>;
+  sql: (query: string, ...params: SqlParamTypes[]) => Promise<any[]>;
 }
 
 function TransactionDB(connection: mysql.PoolConnection): TransactionDB {
@@ -86,3 +88,5 @@ export function inTransaction<T>(task: (db: TransactionDB) => Promise<T>) {
     });
   }) as Promise<T>;
 }
+
+export const escape = mysql.escape;

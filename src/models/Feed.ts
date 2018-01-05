@@ -1,5 +1,6 @@
 import * as bcrypt from 'bcrypt-nodejs';
 import * as _ from 'lodash';
+import * as mysql from 'mysql';
 import * as config from '../config/config';
 import * as db from './db';
 import {
@@ -39,7 +40,10 @@ function stringifyFdvalue(fdvalue: FdvalueType) {
   return JSON.stringify(copiedFdvalue);
 }
 
-async function insertFeed(db: db.TransactionDB, posterUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
+/**
+ * create a feed value
+ */
+async function insertFeedValue(db: db.TransactionDB, posterUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
   const result = await db.sql(`
       INSERT INTO t_feed_value (poster_uname, created_at, fdtype, fdvalue)
       VALUES (?, now(), ?, ?);
@@ -48,9 +52,18 @@ async function insertFeed(db: db.TransactionDB, posterUname: string, fdtype: Fdt
   return (result as any).insertId as string;
 }
 
-async function addFeed(posterUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
+async function insetFeedItemTo(db: db.TransactionDB, fdid: string, receiverUname: string) {
+  const sql = `INSERT INTO t_feed (fdid, receiver_uname) VALUES (?, ?)`;
+  return db.sql(sql, fdid, receiverUname);
+}
+
+/**
+ * post feed to all follower of  `posterUname`
+ * @param posterUname creator of feed
+ */
+async function postFeed(posterUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
   return db.inTransaction(async (db) => {
-    const insertId = await insertFeed(db, posterUname, fdtype, fdvalue);
+    const insertId = await insertFeedValue(db, posterUname, fdtype, fdvalue);
 
     const sql = `
       INSERT INTO t_feed (fdid, receiver_uname)
@@ -62,22 +75,21 @@ async function addFeed(posterUname: string, fdtype: Fdtype, fdvalue: FdvalueType
   });
 }
 
-async function addFeedToSpecificUser(posterUname: string, receiverUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
+async function addFeedToSpecificUsers(posterUname: string, receiverUnames: string[], fdtype: Fdtype, fdvalue: FdvalueType) {
   const json = JSON.stringify(fdvalue);
-  const sql = `
-    INSERT INTO t_feed (poster_uname, created_at, fdtype, fdvalue, receiver_uname) VALUES (?, NOW(), ?, ?, ?);
-  `;
-  const result = await db.sql(sql, posterUname, fdtype, json, receiverUname);
-  const fdid = (result as any).insertId;
-  return fdid;
+  return db.inTransaction(async (db) => {
+    const fdid = await insertFeedValue(db, posterUname, fdtype, fdvalue);
+    const sql = `INSERT INTO t_feed (fdid, receiver_uname) VALUES (?, ?)`;
+    return Promise.all(receiverUnames.map((receiverUname) => db.sql(sql, fdid, receiverUname)));
+  });
 }
 
 export async function addLikeFeed(uname: string, fdvalue: FdvalueLike) {
-  return addFeed(uname, Fdtype.Like, fdvalue);
+  return postFeed(uname, Fdtype.Like, fdvalue);
 }
 
 export async function addFollowFeed(uname: string, fdvalue: FdvalueFollow) {
-  return addFeed(uname, Fdtype.Follow, fdvalue);
+  return postFeed(uname, Fdtype.Follow, fdvalue);
 }
 
 /**
@@ -86,43 +98,46 @@ export async function addFollowFeed(uname: string, fdvalue: FdvalueFollow) {
  * @param followee uname of the user to post this feed to
  */
 export async function addFollowedByFeedToSpecificUser(follower: string, followee: string) {
-  return addFeedToSpecificUser(follower, followee, Fdtype.FollowedBy, {} as any);
+  return addFeedToSpecificUsers(follower, [followee], Fdtype.FollowedBy, {} as any);
 }
 
 export async function addRateFeed(uname: string, fdvalue: FdvalueRate) {
-  return addFeed(uname, Fdtype.Rate, fdvalue);
+  return postFeed(uname, Fdtype.Rate, fdvalue);
 }
 
 export async function addPlaylistCreateFeed(uname: string, fdvalue: FdvaluePlaylistCreate) {
-  return addFeed(uname, Fdtype.PlaylistCreate, fdvalue);
+  return postFeed(uname, Fdtype.PlaylistCreate, fdvalue);
 }
 
 export async function addPlaylistAddTrackFeed(uname: string, fdvalue: FdvaluePlaylistAddTrack) {
-  return addFeed(uname, Fdtype.PlaylistAddTrack, fdvalue);
+  return postFeed(uname, Fdtype.PlaylistAddTrack, fdvalue);
 }
 
 export async function addPlaylistDelTrackFeed(uname: string, fdvalue: FdvaluePlaylistDelTrack) {
-  return addFeed(uname, Fdtype.PlaylistDelTrack, fdvalue);
+  return postFeed(uname, Fdtype.PlaylistDelTrack, fdvalue);
 }
 
 export async function addPlaylistAddTrackFeedToArtistLikers(posterUname: string, track: Track, playlist: Playlist) {
   // need artist info for those tracks cuz need them in `fdvalue`
   const [artist] = await TrackDB.getArtistsForTrids([track.trid]);
-  const sql = `
-  INSERT INTO t_feed (poster_uname, created_at, fdtype, fdvalue, receiver_uname)
-    SELECT ?, now(), ?, ?, uname
-    FROM t_like
-      INNER JOIN (
-        SELECT arid FROM t_track WHERE trid = ?
-      ) AS _
-      USING (arid);
-  `;
-  const fdvalue: FdvaluePlaylistOfLikedArtistAddTrack = {
-    artist,
-    playlist,
-    track,
-  };
-  await db.sql(sql, posterUname, Fdtype.PlaylistOfLikedArtistAddTrack, stringifyFdvalue(fdvalue), track.trid);
+  await db.inTransaction(async (db) => {
+    const fdvalue: FdvaluePlaylistOfLikedArtistAddTrack = {
+      artist,
+      playlist,
+      track,
+    };
+    const fdid = await insertFeedValue(db, posterUname, Fdtype.PlaylistOfLikedArtistAddTrack, fdvalue);
+    const sql = `
+      INSERT INTO t_feed (fdid, receiver_uname)
+        SELECT ${fdid}, uname
+        FROM t_like
+          INNER JOIN (
+            SELECT arid FROM t_track WHERE trid = ${mysql.escape(track.trid)}
+          ) AS _
+          USING (arid);
+    `;
+    await db.sql(sql);
+  });
 }
 
 export async function getFeeds(uname: string, offset: number, limit: number) {
