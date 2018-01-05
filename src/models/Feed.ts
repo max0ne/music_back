@@ -39,13 +39,27 @@ function stringifyFdvalue(fdvalue: FdvalueType) {
   return JSON.stringify(copiedFdvalue);
 }
 
+async function insertFeed(db: db.TransactionDB, posterUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
+  const result = await db.sql(`
+      INSERT INTO t_feed_value (poster_uname, created_at, fdtype, fdvalue)
+      VALUES (?, now(), ?, ?);
+    `, posterUname, fdtype, stringifyFdvalue(fdvalue));
+
+  return (result as any).insertId as string;
+}
+
 async function addFeed(posterUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
-  const sql = `
-    INSERT INTO t_feed (poster_uname, created_at, fdtype, fdvalue, receiver_uname)
-    SELECT ?, NOW(), ?, ?, follower_uname FROM t_follow
-    WHERE followee_uname = ?;
-  `;
-  await db.sql(sql, posterUname, fdtype, stringifyFdvalue(fdvalue), posterUname);
+  return db.inTransaction(async (db) => {
+    const insertId = await insertFeed(db, posterUname, fdtype, fdvalue);
+
+    const sql = `
+      INSERT INTO t_feed (fdid, receiver_uname)
+      SELECT ?, follower_uname
+      FROM t_follow
+      WHERE followee_uname = ?;
+    `;
+    await db.sql(sql, insertId, posterUname);
+  });
 }
 
 async function addFeedToSpecificUser(posterUname: string, receiverUname: string, fdtype: Fdtype, fdvalue: FdvalueType) {
@@ -118,13 +132,16 @@ export async function getFeeds(uname: string, offset: number, limit: number) {
     ...serializer.prefixKeys('poster_user', serializer.userKeys),
     ].join(',')}
     FROM t_feed
-    INNER JOIN t_user AS poster_user ON (poster_user.uname = t_feed.poster_uname)
+    INNER JOIN t_feed_value USING (fdid)
+    INNER JOIN t_user AS poster_user ON (poster_user.uname = t_feed_value.poster_uname)
     WHERE receiver_uname = ?
     ORDER BY fdid DESC LIMIT ? OFFSET ?;
   `;
   const countSql = `
     SELECT count(*) AS total
     FROM t_feed
+    INNER JOIN t_feed_value USING (fdid)
+    INNER JOIN t_user AS poster_user ON (poster_user.uname = t_feed_value.poster_uname)
     WHERE receiver_uname = ?;
   `;
   const result = await db.sql(sql, uname, limit, offset);

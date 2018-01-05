@@ -43,7 +43,7 @@ export function sql(query: string, ...params: any[]) {
   }) as Promise<any[]>;
 }
 
-interface TransactionDB {
+export interface TransactionDB {
   sql: (query: string, ...params: any[]) => Promise<any[]>;
 }
 
@@ -79,15 +79,10 @@ export function inTransaction<T>(task: (db: TransactionDB) => Promise<T>) {
             return result;
           } catch (error) {
             conn.rollback();
+            reject(error);
           }
         });
       }
     });
   }) as Promise<T>;
-}
-
-async function hah() {
-  return await inTransaction(async (db) => {
-    return 10;
-  });
 }
