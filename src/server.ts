@@ -29,7 +29,7 @@ import * as userRouter from './controllers/user';
 import * as artistRouter from './controllers/artist';
 import * as feedRouter from './controllers/feed';
 import * as trackRouter from './controllers/track';
-import * as insertRateStuff from './controllers/insertRateStuff';
+import * as middleware from './controllers/middleware';
 import * as popularRouter from './controllers/popular';
 
 import * as UserDB from './models/User';
@@ -105,8 +105,9 @@ apiRouter.use(async (req, res, next) => {
   next();
 });
 
-apiRouter.use(insertRateStuff.insertArtistLikeds() as any);
-apiRouter.use(insertRateStuff.insertTrackRates() as any);
+apiRouter.use(middleware.insertArtistLikeds() as any);
+apiRouter.use(middleware.insertTrackRates() as any);
+apiRouter.use(middleware.insertCoverUrls() as any);
 
 apiRouter.use('/album', albumRouter.router);
 apiRouter.use('/playlist', playlistRouter.router);

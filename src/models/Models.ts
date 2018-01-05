@@ -5,7 +5,7 @@ export interface Track {
   trduration: number;
   genre: string;
   arid: string;
-  rating: number;
+  userRating: number;
   communityRating: number;
 }
 
@@ -22,6 +22,11 @@ export interface Artist {
   arname: string;
   ardesc: string;
   coverUrl: string;
+
+  /**
+   * liked by current user
+   */
+  liked: boolean;
 }
 
 export interface User {

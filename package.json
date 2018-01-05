@@ -42,6 +42,7 @@
     "@types/faker": "^4.1.2",
     "@types/mysql": "^2.15.2",
     "@types/passport-local": "^1.0.32",
+    "@types/superagent": "^3.5.6",
     "async": "^2.1.2",
     "bcrypt-nodejs": "^0.0.3",
     "body-parser": "^1.15.2",
@@ -68,7 +69,9 @@
     "passport-facebook": "^2.1.1",
     "passport-local": "^1.0.0",
     "pug": "^2.0.0-beta6",
-    "request": "^2.78.0"
+    "request": "^2.78.0",
+    "spotify-web-api-node": "^2.5.0",
+    "superagent": "^3.8.2"
   },
   "devDependencies": {
     "@types/async": "^2.0.40",

@@ -48,7 +48,7 @@ export function handleError(error: Error, req: Request, res: Response, next: Nex
   errorHandler()(error, req, res, next);
 }
 
-export const findObjectsWithKey = (key: string) => (obj: any, cb: (found: any) => void) => {
+export const findObjectsWithKey = (obj: any, key: string) => {
   const findIt = (obj: any, cb: (found: any) => void) => {
     if (_.isNil(obj)) {
       return;
@@ -64,7 +64,9 @@ export const findObjectsWithKey = (key: string) => (obj: any, cb: (found: any) =
       }
     }
   };
-  findIt(obj, cb);
+  const founds = [] as any[];
+  findIt(obj, (found) => founds.push(found));
+  return founds;
 };
 
 export const mungJsonAsync = (handler: (...params: any[]) => Promise<any>) => {
